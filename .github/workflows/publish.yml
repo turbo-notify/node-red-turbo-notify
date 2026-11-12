@@ -2,6 +2,9 @@
 # provenance statement: anyone can verify that the package was built by this
 # workflow, from this repository and commit. Do not publish from a local machine.
 #
+# First release of a new package: add a granular npm token as the Actions secret NPM_TOKEN, push the tag,
+# then do the Trusted Publisher setup below and delete both the secret and the token.
+#
 # One-time setup (Trusted Publisher, no long-lived secret):
 #   1. On npmjs.com open the package settings, section Trusted Publisher.
 #   2. Choose GitHub Actions and enter the repository owner, the repository
@@ -55,4 +58,11 @@ jobs:
         run: npm test
 
       - name: Publish
-        run: npm publish --provenance --access public
+        # With a Trusted Publisher the token step is skipped and npm uses the OIDC exchange. The very first
+        # release of a new package needs the NPM_TOKEN secret (a Trusted Publisher can only be set on a
+        # package that exists); delete the secret and the token right after.
+        run: |
+          if [ -n "$NPM_TOKEN" ]; then npm config set //registry.npmjs.org/:_authToken "$NPM_TOKEN"; fi
+          npm publish --provenance --access public
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
