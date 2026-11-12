@@ -9,3 +9,4 @@ First release.
 - whatsapp status: reads the status of a sent message.
 - whatsapp events: polls `GET /v1/events` with a persistent cursor, oldest first, at least once.
 - Four importable example flows.
+- The key travels only over https (or to this computer), and the Test button sends the stored key only to the address the node was deployed with.

@@ -21,6 +21,11 @@ export interface RequestOptions {
   signal?: AbortSignal;
 }
 
+/** The key is only ever sent over https, except to a service running on this same computer. */
+function isThisComputer(hostname: string): boolean {
+  return hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '[::1]';
+}
+
 /** The address without a trailing slash or /v1 (the client adds /v1 itself). */
 export function normalizeBaseUrl(raw: unknown): string {
   const text = typeof raw === 'string' && raw.trim() !== '' ? raw.trim() : DEFAULT_BASE_URL;
@@ -33,7 +38,7 @@ export function normalizeBaseUrl(raw: unknown): string {
   }
   const usable =
     parsed !== undefined &&
-    (parsed.protocol === 'https:' || parsed.protocol === 'http:') &&
+    (parsed.protocol === 'https:' || (parsed.protocol === 'http:' && isThisComputer(parsed.hostname))) &&
     parsed.username === '' &&
     parsed.password === '' &&
     parsed.search === '' &&
@@ -41,7 +46,7 @@ export function normalizeBaseUrl(raw: unknown): string {
   if (!usable) {
     throw new ValidationError(
       'Base URL',
-      `is not a valid web address. Use ${DEFAULT_BASE_URL} unless support gave you another address.`,
+      `is not a valid https address. Use ${DEFAULT_BASE_URL} unless support gave you another address.`,
     );
   }
   return cleaned;

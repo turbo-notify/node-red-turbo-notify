@@ -82,6 +82,36 @@ describe('Config node Test button', () => {
     expect(fake.calls[0].headers.Authorization).toBe('Bearer typed_key_abc');
   });
 
+  it('sends the stored key only to the address deployed with it, never to one named in the request', async () => {
+    fake = mockFetch({ body: {} });
+    await helper.load(ALL_NODES, flow(), { cfg: { apiKey: KEY } });
+    await post({ id: 'cfg', apiKey: '__PWRD__', baseUrl: 'https://attacker.example' });
+    expect(fake.calls).toHaveLength(1);
+    expect(fake.calls[0].url).toBe('https://api.turbonotify.com/v1/usage');
+    expect(JSON.stringify(fake.calls)).not.toContain('attacker.example');
+  });
+
+  it('refuses to use a stored key for a node that is not a deployed config node', async () => {
+    fake = mockFetch({ body: {} });
+    await helper.load(ALL_NODES, flow(), { cfg: { apiKey: KEY }, s1: { apiKey: KEY } });
+    for (const id of ['s1', 'missing-node', '']) {
+      const answer = await post({ id, apiKey: '__PWRD__', baseUrl: 'https://attacker.example' });
+      expect((answer.body as { ok: boolean }).ok).toBe(false);
+    }
+    expect(fake.calls).toHaveLength(0);
+  });
+
+  it('accepts only https addresses, except for this computer (localhost, 127.0.0.1, ::1)', async () => {
+    fake = mockFetch({ body: {} });
+    await helper.load(ALL_NODES, flow(), {});
+    const refused = await post({ id: 'new-node', apiKey: 'typed_key_abc', baseUrl: 'http://api.example.test' });
+    expect((refused.body as { ok: boolean }).ok).toBe(false);
+    expect(fake.calls).toHaveLength(0);
+    const local = await post({ id: 'new-node', apiKey: 'typed_key_abc', baseUrl: 'http://127.0.0.1:8080' });
+    expect((local.body as { ok: boolean }).ok).toBe(true);
+    expect(fake.calls[0].url).toBe('http://127.0.0.1:8080/v1/usage');
+  });
+
   it('answers with the API error code and its description when the key is refused', async () => {
     fake = mockFetch({ status: 401, body: { error: 'not_authenticated' } });
     await helper.load(ALL_NODES, flow(), { cfg: { apiKey: KEY } });

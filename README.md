@@ -114,6 +114,8 @@ Every example uses the placeholder number `+12025550123`: replace it before you 
 
 Webhooks are set once per organization in the dashboard, so a node cannot register one for you. If you want push delivery, point the webhook at an **http in** node and check the signature in a **function** node, as described in the [webhook documentation](https://docs.turbonotify.com/en/messages/webhook/). The events node needs none of that.
 
+- The key is sent only to the address in the config node, over https (an address on the same computer, such as `http://127.0.0.1:8080`, is also accepted). The Test button uses the address the node was deployed with, never one from the request, so deploy the node after changing its address and test again.
+
 ## WhatsApp policy
 
 Turbo Notify links an ordinary WhatsApp number to your account as a linked device. It is not the Meta WhatsApp Business Platform. Messages come from your own number, so WhatsApp's rules apply to you: message people who expect to hear from you, do not send unsolicited bulk messages, and read the [good practices](https://docs.turbonotify.com/en/general/abuse/) before you automate anything. A number that sends spam can be restricted by WhatsApp, and that is outside our control.

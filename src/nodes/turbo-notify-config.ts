@@ -1,4 +1,4 @@
-import { type ApiConfig, DEFAULT_BASE_URL, apiRequest, normalizeBaseUrl } from '../lib/client';
+import { type ApiConfig, apiRequest, normalizeBaseUrl } from '../lib/client';
 import { ApiError, ValidationError } from '../lib/errors';
 import type { ConfigNode, NodeConfig, Red } from '../lib/red';
 
@@ -19,6 +19,7 @@ function apiConfigOf(apiKey: unknown, baseUrl: unknown): ApiConfig {
 export = function register(RED: Red): void {
   function TurboNotifyConfig(this: ConfigNode, config: NodeConfig): void {
     RED.nodes.createNode(this, config);
+    this.deployedBaseUrl = config.baseUrl;
     this.apiConfig = () => apiConfigOf(this.credentials?.apiKey, config.baseUrl);
   }
 
@@ -35,9 +36,23 @@ export = function register(RED: Red): void {
       const body = req.body ?? {};
       const id = typeof body.id === 'string' ? body.id : '';
       const typed = typeof body.apiKey === 'string' ? body.apiKey : '';
-      const apiKey =
-        typed !== '' && typed !== UNCHANGED ? typed : (RED.nodes.getCredentials(id)?.apiKey ?? '');
-      const baseUrl = typeof body.baseUrl === 'string' && body.baseUrl !== '' ? body.baseUrl : DEFAULT_BASE_URL;
+      let apiKey = typed;
+      let baseUrl: unknown = body.baseUrl;
+      if (typed === '' || typed === UNCHANGED) {
+        // The stored key goes only to the address deployed with it, whatever this request says, and only for a
+        // deployed config node. Otherwise a request could point the stored key at another server.
+        const node = id !== '' ? (RED.nodes.getNode(id) as (ConfigNode & { type?: string }) | null) : null;
+        if (!node || node.type !== 'turbo-notify-config') {
+          res.json({
+            ok: false,
+            code: 'invalid_input',
+            description: 'Paste the key again to test it, or deploy this config node first.',
+          });
+          return;
+        }
+        apiKey = RED.nodes.getCredentials(id)?.apiKey ?? '';
+        baseUrl = node.deployedBaseUrl;
+      }
       try {
         await apiRequest(apiConfigOf(apiKey, baseUrl), { method: 'GET', path: '/usage' });
         res.json({ ok: true });
