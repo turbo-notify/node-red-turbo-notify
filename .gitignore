@@ -1,0 +1,12 @@
+node_modules
+coverage
+*.tgz
+.claude/
+.private/
+.codex/
+.gemini/
+.env*
+!.env.example
+graphify-out/
+.worktrees/
+dist

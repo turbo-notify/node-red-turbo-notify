@@ -1,0 +1,58 @@
+# Publishes this package to npm when a version tag is pushed, with an npm
+# provenance statement: anyone can verify that the package was built by this
+# workflow, from this repository and commit. Do not publish from a local machine.
+#
+# One-time setup (Trusted Publisher, no long-lived secret):
+#   1. On npmjs.com open the package settings, section Trusted Publisher.
+#   2. Choose GitHub Actions and enter the repository owner, the repository
+#      name and the workflow file name publish.yml. Leave Environment empty.
+#
+# Releasing: update the version in package.json and src/lib/version.ts, update
+# CHANGELOG.md, commit, then push a tag that equals the version (for example 0.1.0).
+
+name: Publish
+
+on:
+  push:
+    tags:
+      - '*.*.*'
+
+jobs:
+  publish:
+    name: Publish to npm
+    runs-on: ubuntu-latest
+
+    permissions:
+      # Needed to mint the OIDC token used for the provenance statement.
+      id-token: write
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          # Trusted Publisher needs npm 11.5.1 or later, which ships with Node 24.
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
+          cache: 'npm'
+
+      - name: The tag must equal the package version
+        run: |
+          [ "${GITHUB_REF_NAME}" = "$(node -p "require('./package.json').version")" ]
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
+
+      - name: Test
+        run: npm test
+
+      - name: Publish
+        run: npm publish --provenance --access public

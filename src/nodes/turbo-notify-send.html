@@ -1,0 +1,128 @@
+<script type="text/javascript">
+  RED.nodes.registerType('turbo-notify-send', {
+    category: 'Turbo Notify',
+    color: '#8fd0a8',
+    defaults: {
+      name: { value: '' },
+      server: { value: '', type: 'turbo-notify-config', required: true },
+      to: { value: '' },
+      number: { value: 'main' },
+    },
+    inputs: 1,
+    outputs: 1,
+    icon: 'font-awesome/fa-paper-plane',
+    paletteLabel: 'whatsapp send',
+    label: function () {
+      return this.name || 'whatsapp send';
+    },
+    labelStyle: function () {
+      return this.name ? 'node_label_italic' : '';
+    },
+    inputLabels: 'message',
+    outputLabels: 'accepted',
+  });
+</script>
+
+<script type="text/html" data-template-name="turbo-notify-send">
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-input-name" placeholder="Name" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-server"><i class="fa fa-user"></i> Account</label>
+    <input type="text" id="node-input-server" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-to"><i class="fa fa-phone"></i> To</label>
+    <input type="text" id="node-input-to" placeholder="+12025550123, ct_... or grp_..." />
+  </div>
+  <div class="form-row">
+    <label for="node-input-number"><i class="fa fa-mobile"></i> Number</label>
+    <input type="text" id="node-input-number" placeholder="main" />
+  </div>
+</script>
+
+<script type="text/html" data-help-name="turbo-notify-send">
+  <p>Sends a WhatsApp message from your Turbo Notify number: text, an image, video, audio, document or sticker from a web address, or a location.</p>
+
+  <h3>Inputs</h3>
+  <dl class="message-properties">
+    <dt>payload <span class="property-type">string</span></dt>
+    <dd>
+      The text of the message, up to 4096 characters. A number works too, for a sensor reading. When
+      <code>msg.media</code> is set, a text payload is used as the caption if the media has none. When
+      <code>msg.location</code> is set, the payload is ignored.
+    </dd>
+    <dt class="optional">to <span class="property-type">string | object</span></dt>
+    <dd>
+      Who receives it. A phone number in international format (<code>+12025550123</code>), a contact id
+      (<code>ct_...</code>) or a group id (<code>grp_...</code>). An object with exactly one of
+      <code>number</code>, <code>contact_id</code> or <code>group_id</code> also works. Overrides the To
+      property of the node. A message goes to one recipient: to send the same text to a list, split the list so
+      each message carries one recipient.
+    </dd>
+    <dt class="optional">number <span class="property-type">string</span></dt>
+    <dd>
+      The Turbo Notify number to send from: <code>main</code>, the alias of an extra number or its
+      <code>num_...</code> id. Overrides the Number property. Defaults to <code>main</code>.
+    </dd>
+    <dt class="optional">media <span class="property-type">object</span></dt>
+    <dd>
+      <code>{ type, url, caption, filename }</code>. <code>type</code> is <code>image</code>,
+      <code>video</code>, <code>audio</code>, <code>document</code> or <code>sticker</code>.
+      <code>url</code> is a public http or https address (the file is not uploaded from Node-RED).
+      <code>caption</code> (up to 1024 characters) works for image, video and document.
+      <code>filename</code> works for document.
+    </dd>
+    <dt class="optional">location <span class="property-type">object</span></dt>
+    <dd>
+      <code>{ latitude, longitude, name, address, url }</code>. Latitude and longitude are required.
+    </dd>
+    <dt class="optional">replyTo <span class="property-type">string</span></dt>
+    <dd>
+      The id of an earlier message (<code>msg_...</code>) to quote. A reply goes to the chat of the quoted
+      message, so To is not used.
+    </dd>
+    <dt class="optional">idempotencyKey <span class="property-type">string</span></dt>
+    <dd>
+      Up to 255 plain characters that you choose, such as an order number. If a send times out and you repeat
+      it with the same key from the same number, the message is not sent twice.
+    </dd>
+  </dl>
+
+  <h3>Outputs</h3>
+  <dl class="message-properties">
+    <dt>payload <span class="property-type">object</span></dt>
+    <dd>
+      The answer of the API: <code>message_id</code> and <code>status</code>. A send is accepted at once and
+      delivered a moment later.
+    </dd>
+    <dt>messageId <span class="property-type">string</span></dt>
+    <dd>The id of the message, ready for the whatsapp status node.</dd>
+  </dl>
+
+  <h3>Details</h3>
+  <p>
+    Input is checked before anything is sent. A wrong phone number, two recipients, a media address that is not
+    http or https, a text over 4096 characters or an id with the wrong prefix stops the message and names the
+    property.
+  </p>
+  <p>
+    When the API refuses the call, the node reports an error whose message is the API error code (for example
+    <code>insufficient_scope</code>). A Catch node receives it in <code>msg.error.message</code>, and the
+    description is in <code>msg.error.cause.description</code>. Other details, when the API gives them, are
+    <code>msg.error.cause.requiredScope</code> and <code>msg.error.cause.retryAfter</code>.
+  </p>
+  <p>
+    <b>Bursts.</b> Your number sends one message every 5 to 10 seconds, so a flow that sends many messages at
+    once queues them. A message that waits more than 5 minutes fails with <code>message_timeout</code> (it may
+    still arrive). Put a delay node in front of this one to release one message at a time.
+  </p>
+  <p>Messages leave from the WhatsApp number linked to your Turbo Notify account, so send only what your recipients expect.</p>
+
+  <h3>References</h3>
+  <ul>
+    <li><a href="https://docs.turbonotify.com/en/messages/send/">Sending messages</a></li>
+    <li><a href="https://docs.turbonotify.com/en/messages/rate-limits/">Rate limits</a></li>
+  </ul>
+</script>

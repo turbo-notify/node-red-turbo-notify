@@ -1,0 +1,178 @@
+[
+  {
+    "id": "a1b2c3d4e5f60001",
+    "type": "tab",
+    "label": "Door sensor to WhatsApp",
+    "disabled": false,
+    "info": "Tells you on WhatsApp when a door sensor reports that the door opened."
+  },
+  {
+    "id": "a1b2c3d4e5f60002",
+    "type": "comment",
+    "z": "a1b2c3d4e5f60001",
+    "name": "Setup",
+    "info": "Before you run this flow: open the Turbo Notify account node, paste an API key (it needs the messages:send scope) and press Test. Replace +12025550123 with the number that should receive the message. Your Turbo Notify account needs a WhatsApp number linked to it. Replace the inject node with your sensor (MQTT, Zigbee, GPIO or any node that emits a message when the door opens).",
+    "x": 200,
+    "y": 40,
+    "wires": []
+  },
+  {
+    "id": "a1b2c3d4e5f60003",
+    "type": "inject",
+    "z": "a1b2c3d4e5f60001",
+    "name": "Door opened (replace with your sensor)",
+    "props": [
+      {
+        "p": "payload"
+      }
+    ],
+    "repeat": "",
+    "crontab": "",
+    "once": false,
+    "onceDelay": 0.1,
+    "topic": "",
+    "payload": "open",
+    "payloadType": "str",
+    "x": 200,
+    "y": 120,
+    "wires": [
+      [
+        "a1b2c3d4e5f60004"
+      ]
+    ]
+  },
+  {
+    "id": "a1b2c3d4e5f60004",
+    "type": "change",
+    "z": "a1b2c3d4e5f60001",
+    "name": "write the message",
+    "rules": [
+      {
+        "t": "set",
+        "p": "payload",
+        "pt": "msg",
+        "to": "\"The front door was opened at \" & $now()",
+        "tot": "jsonata"
+      }
+    ],
+    "action": "",
+    "property": "",
+    "from": "",
+    "to": "",
+    "reg": false,
+    "x": 470,
+    "y": 120,
+    "wires": [
+      [
+        "a1b2c3d4e5f60005"
+      ]
+    ]
+  },
+  {
+    "id": "a1b2c3d4e5f60005",
+    "type": "turbo-notify-send",
+    "z": "a1b2c3d4e5f60001",
+    "name": "send on WhatsApp",
+    "server": "tn0cfg0000000001",
+    "to": "+12025550123",
+    "number": "main",
+    "x": 700,
+    "y": 120,
+    "wires": [
+      [
+        "a1b2c3d4e5f60009"
+      ]
+    ]
+  },
+  {
+    "id": "a1b2c3d4e5f60006",
+    "type": "debug",
+    "z": "a1b2c3d4e5f60001",
+    "name": "delivery status",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "x": 1250,
+    "y": 180,
+    "wires": []
+  },
+  {
+    "id": "a1b2c3d4e5f60007",
+    "type": "catch",
+    "z": "a1b2c3d4e5f60001",
+    "name": "",
+    "scope": null,
+    "uncaught": false,
+    "x": 700,
+    "y": 200,
+    "wires": [
+      [
+        "a1b2c3d4e5f60008"
+      ]
+    ]
+  },
+  {
+    "id": "a1b2c3d4e5f60008",
+    "type": "debug",
+    "z": "a1b2c3d4e5f60001",
+    "name": "error",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "error",
+    "targetType": "msg",
+    "x": 900,
+    "y": 200,
+    "wires": []
+  },
+  {
+    "id": "a1b2c3d4e5f60009",
+    "type": "delay",
+    "z": "a1b2c3d4e5f60001",
+    "name": "wait 5 seconds",
+    "pauseType": "delay",
+    "timeout": "5",
+    "timeoutUnits": "seconds",
+    "rate": "1",
+    "nbRateUnits": "1",
+    "rateUnits": "second",
+    "randomFirst": "1",
+    "randomLast": "5",
+    "randomUnits": "seconds",
+    "drop": false,
+    "allowrate": false,
+    "outputs": 1,
+    "x": 900,
+    "y": 120,
+    "wires": [
+      [
+        "a1b2c3d4e5f6000a"
+      ]
+    ]
+  },
+  {
+    "id": "a1b2c3d4e5f6000a",
+    "type": "turbo-notify-status",
+    "z": "a1b2c3d4e5f60001",
+    "name": "read the status",
+    "server": "tn0cfg0000000001",
+    "number": "main",
+    "x": 1030,
+    "y": 180,
+    "wires": [
+      [
+        "a1b2c3d4e5f60006"
+      ]
+    ]
+  },
+  {
+    "id": "tn0cfg0000000001",
+    "type": "turbo-notify-config",
+    "name": "My Turbo Notify account",
+    "baseUrl": "https://api.turbonotify.com"
+  }
+]

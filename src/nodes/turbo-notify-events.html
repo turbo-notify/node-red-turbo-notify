@@ -1,0 +1,105 @@
+<script type="text/javascript">
+  RED.nodes.registerType('turbo-notify-events', {
+    category: 'Turbo Notify',
+    color: '#8fd0a8',
+    defaults: {
+      name: { value: '' },
+      server: { value: '', type: 'turbo-notify-config', required: true },
+      types: { value: 'message.received' },
+      number: { value: '' },
+      interval: {
+        value: 30,
+        required: true,
+        validate: function (value) {
+          var n = Number(value);
+          return isFinite(n) && n >= 10;
+        },
+      },
+    },
+    inputs: 0,
+    outputs: 1,
+    icon: 'font-awesome/fa-inbox',
+    paletteLabel: 'whatsapp events',
+    label: function () {
+      return this.name || 'whatsapp events';
+    },
+    labelStyle: function () {
+      return this.name ? 'node_label_italic' : '';
+    },
+    outputLabels: 'event',
+  });
+</script>
+
+<script type="text/html" data-template-name="turbo-notify-events">
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-input-name" placeholder="Name" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-server"><i class="fa fa-user"></i> Account</label>
+    <input type="text" id="node-input-server" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-types"><i class="fa fa-filter"></i> Event types</label>
+    <input type="text" id="node-input-types" placeholder="message.received" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-number"><i class="fa fa-mobile"></i> Number</label>
+    <input type="text" id="node-input-number" placeholder="every number" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-interval"><i class="fa fa-clock-o"></i> Every</label>
+    <input type="number" id="node-input-interval" min="10" style="width: 80px" /> seconds
+  </div>
+</script>
+
+<script type="text/html" data-help-name="turbo-notify-events">
+  <p>Starts a flow when something happens on your WhatsApp number, such as a message arriving. It checks for new events at the interval you set.</p>
+
+  <h3>Outputs</h3>
+  <dl class="message-properties">
+    <dt>payload <span class="property-type">object</span></dt>
+    <dd>
+      The event, with its envelope: <code>id</code> (<code>evt_...</code>), <code>type</code>,
+      <code>number_alias</code>, <code>number_id</code>, <code>created_at</code> and <code>data</code>.
+      For a received message, <code>data</code> holds the sender, a <code>preview</code> of the text and the
+      content type.
+    </dd>
+    <dt>topic <span class="property-type">string</span></dt>
+    <dd>The event type, such as <code>message.received</code>.</dd>
+  </dl>
+
+  <h3>Properties</h3>
+  <dl class="message-properties">
+    <dt class="optional">Event types <span class="property-type">string</span></dt>
+    <dd>
+      Event types separated by commas, up to 20. The default is <code>message.received</code>. Leave it empty
+      to receive every event.
+    </dd>
+    <dt class="optional">Number <span class="property-type">string</span></dt>
+    <dd>Only the events of this number: an alias or a <code>num_...</code> id. Empty means every number.</dd>
+    <dt>Every <span class="property-type">seconds</span></dt>
+    <dd>How often to check. The default is 30 and the minimum is 10.</dd>
+  </dl>
+
+  <h3>Details</h3>
+  <p>
+    The first check after a deploy emits nothing: it remembers the newest event, so a flow never runs on old
+    history. Later checks emit the events that arrived since, oldest first, one message per event. The
+    cursor is kept in the node context. With the default in-memory context, a restart of Node-RED starts from
+    now again; to keep the cursor across restarts, set a persistent default context store in the Node-RED
+    settings file.
+  </p>
+  <p>
+    Events are delivered at least once. Keep <code>msg.payload.id</code> if your flow must never act twice on
+    the same event. If a check fails, the cursor does not move and the next check reads the same period
+    again. The node status shows the number of events of the last check, or the API error code.
+  </p>
+  <p>The API key needs the <code>events:read</code> scope.</p>
+
+  <h3>References</h3>
+  <ul>
+    <li><a href="https://docs.turbonotify.com/en/messages/polling/">Event polling</a></li>
+    <li><a href="https://docs.turbonotify.com/en/messages/webhook/">Webhooks</a></li>
+  </ul>
+</script>

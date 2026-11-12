@@ -1,0 +1,102 @@
+<script type="text/javascript">
+  RED.nodes.registerType('turbo-notify-config', {
+    category: 'config',
+    defaults: {
+      name: { value: '' },
+      baseUrl: { value: 'https://api.turbonotify.com' },
+    },
+    credentials: {
+      apiKey: { type: 'password' },
+    },
+    label: function () {
+      return this.name || 'Turbo Notify account';
+    },
+    oneditprepare: function () {
+      var node = this;
+      var result = $('#node-config-turbo-notify-test-result');
+      $('#node-config-turbo-notify-test').on('click', function () {
+        var button = $(this);
+        result.text('Testing...').css('color', '');
+        button.prop('disabled', true);
+        $.ajax({
+          url: 'turbo-notify/test',
+          type: 'POST',
+          contentType: 'application/json',
+          data: JSON.stringify({
+            id: node.id,
+            apiKey: $('#node-config-input-apiKey').val(),
+            baseUrl: $('#node-config-input-baseUrl').val(),
+          }),
+        })
+          .done(function (answer) {
+            if (answer.ok) {
+              result.text('Connected. The key works.').css('color', 'green');
+            } else {
+              result.text(answer.code + ': ' + answer.description).css('color', 'red');
+            }
+          })
+          .fail(function () {
+            result.text('The test could not be run. Deploy the flow once and try again.').css('color', 'red');
+          })
+          .always(function () {
+            button.prop('disabled', false);
+          });
+      });
+    },
+  });
+</script>
+
+<script type="text/html" data-template-name="turbo-notify-config">
+  <div class="form-row">
+    <label for="node-config-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-config-input-name" placeholder="Turbo Notify account" />
+  </div>
+  <div class="form-row">
+    <label for="node-config-input-apiKey"><i class="fa fa-key"></i> API key</label>
+    <input type="password" id="node-config-input-apiKey" placeholder="tn_live_..." />
+  </div>
+  <div class="form-row">
+    <label for="node-config-input-baseUrl"><i class="fa fa-globe"></i> Base URL</label>
+    <input type="text" id="node-config-input-baseUrl" />
+  </div>
+  <div class="form-row">
+    <label>&nbsp;</label>
+    <button type="button" class="red-ui-button" id="node-config-turbo-notify-test">Test</button>
+    <span id="node-config-turbo-notify-test-result" style="margin-left: 10px"></span>
+  </div>
+</script>
+
+<script type="text/html" data-help-name="turbo-notify-config">
+  <p>Holds the Turbo Notify API key that the other Turbo Notify nodes use.</p>
+
+  <h3>Properties</h3>
+  <dl class="message-properties">
+    <dt>API key <span class="property-type">string</span></dt>
+    <dd>
+      A key created under <b>API keys</b> in the Turbo Notify dashboard. Node-RED keeps it in its
+      credentials store, so it is never written to the flow file and does not appear when you export or share a
+      flow. Give it the scopes the nodes you use need: <code>messages:send</code> to send,
+      <code>messages:read</code> for message status and <code>events:read</code> for Events in.
+    </dd>
+    <dt class="optional">Base URL <span class="property-type">string</span></dt>
+    <dd>
+      The address of the API. Leave the default unless Turbo Notify support gave you another one. A trailing
+      <code>/v1</code> is accepted and ignored.
+    </dd>
+  </dl>
+
+  <h3>Details</h3>
+  <p>
+    The <b>Test</b> button reads the account usage with the key and shows whether the key was accepted. It
+    sends nothing. For a node you have not deployed yet, the key you typed is used. After a deploy, a field
+    that shows dots is tested with the key already stored.
+  </p>
+  <p>
+    You need a Turbo Notify account with a WhatsApp number linked to it. Messages leave from that number.
+  </p>
+
+  <h3>References</h3>
+  <ul>
+    <li><a href="https://docs.turbonotify.com/en/general/access-key/">API keys and scopes</a></li>
+  </ul>
+</script>

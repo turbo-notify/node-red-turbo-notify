@@ -1,0 +1,138 @@
+[
+  {
+    "id": "d1b2c3d4e5f60001",
+    "type": "tab",
+    "label": "Camera picture to WhatsApp",
+    "disabled": false,
+    "info": "Sends a picture from a camera snapshot address when something moves."
+  },
+  {
+    "id": "d1b2c3d4e5f60002",
+    "type": "comment",
+    "z": "d1b2c3d4e5f60001",
+    "name": "Setup",
+    "info": "Before you run this flow: open the Turbo Notify account node, paste an API key (it needs the messages:send scope) and press Test. Replace +12025550123 with the number that should receive the message. Your Turbo Notify account needs a WhatsApp number linked to it. The picture is fetched by Turbo Notify from a public http or https address, so the snapshot address must be reachable from the internet. Replace the example address with your camera's snapshot URL.",
+    "x": 200,
+    "y": 40,
+    "wires": []
+  },
+  {
+    "id": "d1b2c3d4e5f60003",
+    "type": "inject",
+    "z": "d1b2c3d4e5f60001",
+    "name": "Motion detected (replace with your sensor)",
+    "props": [
+      {
+        "p": "payload"
+      }
+    ],
+    "repeat": "",
+    "crontab": "",
+    "once": false,
+    "onceDelay": 0.1,
+    "topic": "",
+    "payload": "Motion at the front door",
+    "payloadType": "str",
+    "x": 210,
+    "y": 120,
+    "wires": [
+      [
+        "d1b2c3d4e5f60004"
+      ]
+    ]
+  },
+  {
+    "id": "d1b2c3d4e5f60004",
+    "type": "change",
+    "z": "d1b2c3d4e5f60001",
+    "name": "attach the snapshot",
+    "rules": [
+      {
+        "t": "set",
+        "p": "media",
+        "pt": "msg",
+        "to": "{\"type\":\"image\",\"url\":\"https://example.com/camera/snapshot.jpg\"}",
+        "tot": "json"
+      }
+    ],
+    "action": "",
+    "property": "",
+    "from": "",
+    "to": "",
+    "reg": false,
+    "x": 490,
+    "y": 120,
+    "wires": [
+      [
+        "d1b2c3d4e5f60005"
+      ]
+    ]
+  },
+  {
+    "id": "d1b2c3d4e5f60005",
+    "type": "turbo-notify-send",
+    "z": "d1b2c3d4e5f60001",
+    "name": "send picture",
+    "server": "tn0cfg0000000001",
+    "to": "+12025550123",
+    "number": "main",
+    "x": 720,
+    "y": 120,
+    "wires": [
+      [
+        "d1b2c3d4e5f60006"
+      ]
+    ]
+  },
+  {
+    "id": "d1b2c3d4e5f60006",
+    "type": "debug",
+    "z": "d1b2c3d4e5f60001",
+    "name": "result",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "x": 910,
+    "y": 120,
+    "wires": []
+  },
+  {
+    "id": "d1b2c3d4e5f60007",
+    "type": "catch",
+    "z": "d1b2c3d4e5f60001",
+    "name": "",
+    "scope": null,
+    "uncaught": false,
+    "x": 720,
+    "y": 200,
+    "wires": [
+      [
+        "d1b2c3d4e5f60008"
+      ]
+    ]
+  },
+  {
+    "id": "d1b2c3d4e5f60008",
+    "type": "debug",
+    "z": "d1b2c3d4e5f60001",
+    "name": "error",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "error",
+    "targetType": "msg",
+    "x": 910,
+    "y": 200,
+    "wires": []
+  },
+  {
+    "id": "tn0cfg0000000001",
+    "type": "turbo-notify-config",
+    "name": "My Turbo Notify account",
+    "baseUrl": "https://api.turbonotify.com"
+  }
+]
