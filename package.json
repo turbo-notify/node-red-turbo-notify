@@ -1,9 +1,9 @@
 {
   "name": "@turbo-notify/node-red-turbo-notify",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Send WhatsApp messages from your own number and react to incoming ones in Node-RED flows, with Turbo Notify.",
   "license": "MIT",
-  "homepage": "https://docs.turbonotify.com/en/automation/node-red/",
+  "homepage": "https://docs.turbonotify.com/en/platforms/node-red/",
   "keywords": [
     "node-red",
     "whatsapp",

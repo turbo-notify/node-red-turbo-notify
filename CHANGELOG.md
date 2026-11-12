@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.1
+
+- The package homepage points to the Turbo Notify in Node-RED page in the documentation.
+- First release published through the npm Trusted Publisher (no token).
+
 ## 0.1.0
 
 First release.
