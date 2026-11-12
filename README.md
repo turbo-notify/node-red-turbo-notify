@@ -110,11 +110,11 @@ Every example uses the placeholder number `+12025550123`: replace it before you 
 
   If a check fails (for example, the API is unreachable), the cursor does not move and the next check reads the same period again.
 
+- **The key stays with its address.** The key is sent only to the address in the config node, over https (an address on the same computer, such as `http://127.0.0.1:8080`, is also accepted). The Test button uses the address the node was deployed with, never one from the request, so deploy the node after changing its address and test again.
+
 ### Receiving events by webhook
 
 Webhooks are set once per organization in the dashboard, so a node cannot register one for you. If you want push delivery, point the webhook at an **http in** node and check the signature in a **function** node, as described in the [webhook documentation](https://docs.turbonotify.com/en/messages/webhook/). The events node needs none of that.
-
-- The key is sent only to the address in the config node, over https (an address on the same computer, such as `http://127.0.0.1:8080`, is also accepted). The Test button uses the address the node was deployed with, never one from the request, so deploy the node after changing its address and test again.
 
 ## WhatsApp policy
 
