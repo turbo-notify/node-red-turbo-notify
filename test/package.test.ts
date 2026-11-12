@@ -121,7 +121,13 @@ describe('package contract (what the Flow Library and the scorecard read)', () =
     expect(text).toContain('id-token: write');
     expect(text).toContain('--provenance');
     expect(text).toMatch(/tags:\s*\n\s*- '\*\.\*\.\*'/);
-    expect(text).not.toMatch(/NODE_AUTH_TOKEN|NPM_TOKEN/);
+    // The Trusted Publisher is the route. The one allowed use of a token is the very first release of a new
+    // package (a Trusted Publisher can only be set on a package that exists): one optional, empty-by-default
+    // secret read in the Publish step, never NODE_AUTH_TOKEN and never anywhere else.
+    expect(text).not.toMatch(/NODE_AUTH_TOKEN/);
+    const code = text.split('\n').filter((line) => !line.trim().startsWith('#')).join('\n');
+    expect(code.match(/secrets\.NPM_TOKEN/g)).toHaveLength(1);
+    expect(code).toContain('if [ -n "$NPM_TOKEN" ]');
   });
 
   it('the gitignore keeps internal folders, env files and build output out of the repository', () => {
