@@ -139,7 +139,7 @@ export function prepareStatus(
     }
   }
   if (isBlank(source)) {
-    throw new ValidationError('msg.messageId', 'is not set. Wire this node after a Send node, or set msg.messageId to a msg_ id.');
+    throw new ValidationError('msg.messageId', 'is not set. Wire this node after a whatsapp send node, or set msg.messageId to a msg_ id.');
   }
   const id = messageId(source, where);
   return { path: `/numbers/${encodeURIComponent(ref)}/messages/${id}/status`, number: ref, id };

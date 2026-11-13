@@ -60,7 +60,7 @@ export function mockFetch(...replies: ReplySource[]): { calls: Call[]; restore: 
 }
 
 export const flowWithSend = (props: Record<string, unknown> = {}): Array<Record<string, unknown>> => [
-  { id: 'cfg', type: 'turbo-notify-config', name: 'acct', baseUrl: 'https://api.turbonotify.com' },
+  { id: 'cfg', type: 'turbo-notify-config', name: 'acct' },
   { id: 'n1', type: 'turbo-notify-send', server: 'cfg', to: '', number: 'main', wires: [['out']], ...props },
   { id: 'out', type: 'helper' },
 ];

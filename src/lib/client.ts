@@ -1,7 +1,7 @@
 import { ApiError, ValidationError, apiErrorFromResponse, transportError } from './errors';
 import { USER_AGENT } from './version';
 
-/** The only host this package talks to unless the config node says otherwise. */
+/** The only host this package talks to unless the administrator sets turboNotifyBaseUrl in settings.js. */
 export const DEFAULT_BASE_URL = 'https://api.turbonotify.com';
 
 const READ_TIMEOUT_MS = 30_000;
@@ -45,8 +45,8 @@ export function normalizeBaseUrl(raw: unknown): string {
     parsed.hash === '';
   if (!usable) {
     throw new ValidationError(
-      'Base URL',
-      `is not a valid https address. Use ${DEFAULT_BASE_URL} unless support gave you another address.`,
+      'turboNotifyBaseUrl',
+      `in settings.js is not a valid https address (an address on this computer is also accepted). Remove it to use ${DEFAULT_BASE_URL}.`,
     );
   }
   return cleaned;

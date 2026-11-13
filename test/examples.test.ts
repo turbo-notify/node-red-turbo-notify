@@ -170,7 +170,7 @@ const groupMessage = () =>
 
 describe('example flows run on the real nodes', () => {
   it('scheduled-reminder: the inject sends the reminder text to the configured number', async () => {
-    const run = await start('scheduled-reminder.json');
+    const run = await start('whatsapp-reminder-on-weekdays.json');
     expect(run.byName('Weekdays at 09:00').crontab).toBe('00 09 * * 1-5');
     run.fireInject();
     await until(() => run.calls.length === 1, 'one send');
@@ -181,7 +181,7 @@ describe('example flows run on the real nodes', () => {
     });
   });
 
-  describe.each([['http-endpoint-to-whatsapp.json'], ['order-confirmation.json']])('%s fails closed', (file) => {
+  describe.each([['http-endpoint-to-whatsapp.json'], ['whatsapp-order-confirmation.json']])('%s fails closed', (file) => {
     const call = async (run: Running, token: string | undefined) => {
       const before = run.responses.length;
       run.deliver({ to: PHONE, message: 'x', id: 'A-1', customer: { phone: PHONE }, items: [{ qty: 1, name: 'x' }] }, {
@@ -253,7 +253,7 @@ describe('example flows run on the real nodes', () => {
   });
 
   it('order-confirmation: writes the confirmation from the order and answers 201', async () => {
-    const run = await start('order-confirmation.json', { token: TOKEN });
+    const run = await start('whatsapp-order-confirmation.json', { token: TOKEN });
     const order = {
       id: 'A-1001',
       customer: { name: "Ana O'Neil", phone: PHONE },
@@ -282,7 +282,7 @@ describe('example flows run on the real nodes', () => {
       ['3', 'A person from the team will write to you'],
       ['hello', 'Reply 1 for opening hours'],
     ])('"%s" gets the matching answer, sent to the sender', async (text, expected) => {
-      const run = await start('menu-by-keyword.json');
+      const run = await start('whatsapp-menu-by-keyword.json');
       run.deliver(incoming(text));
       await until(() => run.calls.length === 1, 'one answer');
       expect(textOf(run.calls[0])).toContain(expected);
@@ -290,7 +290,7 @@ describe('example flows run on the real nodes', () => {
     });
 
     it('ignores groups and messages that are not text', async () => {
-      const run = await start('menu-by-keyword.json');
+      const run = await start('whatsapp-menu-by-keyword.json');
       run.deliver(groupMessage());
       run.deliver(incoming('', { content_type: 'image' }));
       await settle();
@@ -300,7 +300,7 @@ describe('example flows run on the real nodes', () => {
 
   describe('after-hours-auto-reply', () => {
     it('answers on a Saturday, not on a Monday at 10:00, and only once per person in 12 hours', async () => {
-      const run = await start('after-hours-auto-reply.json');
+      const run = await start('whatsapp-after-hours-auto-reply.json');
       run.deliver(incoming('are you there?', {}, '2026-06-08T10:00:00')); // Monday, open
       await settle();
       expect(run.calls).toHaveLength(0);
@@ -316,7 +316,7 @@ describe('example flows run on the real nodes', () => {
     });
 
     it('answers a weekday evening and skips groups', async () => {
-      const run = await start('after-hours-auto-reply.json');
+      const run = await start('whatsapp-after-hours-auto-reply.json');
       run.deliver(groupMessage());
       await settle();
       expect(run.calls).toHaveLength(0);
@@ -326,7 +326,7 @@ describe('example flows run on the real nodes', () => {
   });
 
   it('incoming-to-team-group: forwards a private message to the group, not group messages', async () => {
-    const run = await start('incoming-to-team-group.json');
+    const run = await start('incoming-whatsapp-messages-to-a-team-group.json');
     run.deliver(incoming('Can you call me?'));
     await until(() => run.calls.length === 1, 'one forward');
     expect(body(run.calls[0]).to).toEqual({ group_id: GROUP });
@@ -338,7 +338,7 @@ describe('example flows run on the real nodes', () => {
 
   describe('website-down-alert', () => {
     it('sends one message when the site fails and one when it recovers, nothing in between', async () => {
-      const run = await start('website-down-alert.json', {
+      const run = await start('website-down-alert-on-whatsapp.json', {
         httpStub: "msg.statusCode = flow.get('code') ?? 200; return msg;",
       });
       const stub = () => helper.getNode(run.byName('check the site').id).context().flow;
@@ -359,7 +359,7 @@ describe('example flows run on the real nodes', () => {
     });
 
     it('treats a connection error like a failure', async () => {
-      const run = await start('website-down-alert.json', {
+      const run = await start('website-down-alert-on-whatsapp.json', {
         httpStub: "throw new Error('connect ECONNREFUSED');",
       });
       run.fireInject();
@@ -369,7 +369,7 @@ describe('example flows run on the real nodes', () => {
   });
 
   it('temperature-alert: alerts once above the limit, stays quiet while hot, tells when back to normal', async () => {
-    const run = await start('temperature-alert.json');
+    const run = await start('temperature-alert-on-whatsapp.json');
     run.fireInject('Reading 31.5 (replace with your sensor)');
     await until(() => run.calls.length === 1, 'the alert');
     expect(textOf(run.calls[0])).toBe('Temperature is 31.5 C, above the limit of 30 C.');
@@ -386,7 +386,7 @@ describe('example flows run on the real nodes', () => {
 
   describe('daily-weather-forecast', () => {
     it('writes the forecast from the service answer', async () => {
-      const run = await start('daily-weather-forecast.json', {
+      const run = await start('daily-weather-forecast-on-whatsapp.json', {
         httpStub:
           'msg.payload = { daily: { time: ["2026-06-08"], temperature_2m_max: [14.4], temperature_2m_min: [7.6], precipitation_probability_max: [40] } }; return msg;',
       });
@@ -397,7 +397,7 @@ describe('example flows run on the real nodes', () => {
     });
 
     it('sends nothing when the service answers without a forecast', async () => {
-      const run = await start('daily-weather-forecast.json', { httpStub: 'msg.payload = {}; return msg;' });
+      const run = await start('daily-weather-forecast-on-whatsapp.json', { httpStub: 'msg.payload = {}; return msg;' });
       run.fireInject();
       await settle();
       expect(run.calls).toHaveLength(0);
@@ -405,7 +405,7 @@ describe('example flows run on the real nodes', () => {
   });
 
   it('send-a-pdf: sends a document with the file name and the text as the caption', async () => {
-    const run = await start('send-a-pdf.json');
+    const run = await start('send-a-pdf-on-whatsapp.json');
     run.fireInject();
     await until(() => run.calls.length === 1, 'the document');
     expect(body(run.calls[0]).content).toEqual({
@@ -416,7 +416,7 @@ describe('example flows run on the real nodes', () => {
   });
 
   it('share-the-store-location: answers a question about where you are with a location', async () => {
-    const run = await start('share-the-store-location.json');
+    const run = await start('share-your-store-location-on-whatsapp.json');
     run.deliver(incoming('Hi, where are you exactly?'));
     await until(() => run.calls.length === 1, 'the location');
     expect(body(run.calls[0]).content).toEqual({
@@ -432,7 +432,7 @@ describe('example flows run on the real nodes', () => {
   });
 
   it('node-red-error-alert: an error on the tab becomes a WhatsApp message', async () => {
-    const run = await start('node-red-error-alert.json');
+    const run = await start('node-red-error-alert-on-whatsapp.json');
     run.fireInject();
     await until(() => run.calls.length === 1, 'the alert');
     expect(textOf(run.calls[0])).toBe('Node-RED error in fails on purpose (delete me): Error: This is a test error');
@@ -440,7 +440,7 @@ describe('example flows run on the real nodes', () => {
 
   describe('confirm-delivery-or-alert', () => {
     it('warns the owner when the status is failed', async () => {
-      const run = await start('confirm-delivery-or-alert.json', {
+      const run = await start('confirm-whatsapp-delivery-or-alert.json', {
         skipDelay: true,
         reply: (call) =>
           call.method === 'POST' ? { body: { message_id: ID, status: 'pending' } } : { body: { message_id: ID, status: 'failed' } },
@@ -454,7 +454,7 @@ describe('example flows run on the real nodes', () => {
     });
 
     it('stays quiet when the message was delivered', async () => {
-      const run = await start('confirm-delivery-or-alert.json', { skipDelay: true });
+      const run = await start('confirm-whatsapp-delivery-or-alert.json', { skipDelay: true });
       run.fireInject();
       await until(() => run.calls.length === 2, 'send and status');
       await settle();
@@ -463,7 +463,7 @@ describe('example flows run on the real nodes', () => {
   });
 
   it('log-incoming-to-csv: one quoted CSV line per message', async () => {
-    const run = await start('log-incoming-to-csv.json');
+    const run = await start('log-incoming-whatsapp-messages-to-a-file.json');
     run.deliver(incoming('He said "yes", then left'));
     await until(() => run.captured.length === 1, 'one line');
     expect(run.captured[0]).toBe('"2026-06-08T10:00:00","main","12025550142","Ana Silva","text","He said ""yes"", then left"');

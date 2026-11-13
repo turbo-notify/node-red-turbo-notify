@@ -58,6 +58,8 @@ export interface Red {
     getNode(id: string): unknown;
     getCredentials(id: string): Record<string, string | undefined> | undefined;
   };
+  /** The properties of the administrator's settings.js (read only). */
+  settings?: Record<string, unknown>;
   httpAdmin: {
     post(path: string, permission: Middleware, handler: Handler): void;
   };
@@ -70,6 +72,4 @@ export interface Red {
 export interface ConfigNode extends RedNode {
   /** The key and address for a call. Throws a ValidationError when the key is missing or the address is not usable. */
   apiConfig(): { apiKey: string; baseUrl: string };
-  /** The address typed in the node when it was deployed (what the Test button may use with the stored key). */
-  deployedBaseUrl: unknown;
 }

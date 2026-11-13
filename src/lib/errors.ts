@@ -68,7 +68,7 @@ const KNOWN: Record<string, string> = {
     'The same text went to too many recipients in the last hour. Vary the text or space the sends out.',
   recipients_per_day_limit_exceeded:
     'This recipient already received the daily maximum from this number. Try again tomorrow.',
-  unreachable: 'Could not reach Turbo Notify. Check the Base URL of the config node and the network of this Node-RED.',
+  unreachable: 'Could not reach Turbo Notify. Check the network of this Node-RED: it must be able to reach the internet.',
   timeout: 'Turbo Notify did not answer in time. Reads are safe to repeat. For a send, check the status of the message before sending it again, because it may have gone out.',
 };
 

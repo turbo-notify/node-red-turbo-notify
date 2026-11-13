@@ -1,9 +1,9 @@
 <script type="text/javascript">
   RED.nodes.registerType('turbo-notify-config', {
     category: 'config',
+    paletteLabel: 'Turbo Notify account',
     defaults: {
       name: { value: '' },
-      baseUrl: { value: 'https://api.turbonotify.com' },
     },
     credentials: {
       apiKey: { type: 'password' },
@@ -13,30 +13,47 @@
     },
     oneditprepare: function () {
       var node = this;
-      var result = $('#node-config-turbo-notify-test-result');
+      var box = $('#node-config-turbo-notify-test-result');
+      var DASHBOARD = 'https://dashboard.turbonotify.com';
+      var COLORS = { ok: '#1e7b34', warn: '#9a5b00', error: '#c0392b' };
+      // Which state is good news, which one needs a step in the dashboard, and where that step is.
+      var STATES = {
+        ready: { tone: 'ok', icon: 'fa-check-circle' },
+        no_number: { tone: 'warn', icon: 'fa-exclamation-triangle', link: ['Open Numbers', DASHBOARD + '/numbers'] },
+        unchecked: { tone: 'warn', icon: 'fa-exclamation-triangle', link: ['Open Numbers', DASHBOARD + '/numbers'] },
+        no_key: { tone: 'error', icon: 'fa-times-circle', link: ['Open API keys', DASHBOARD + '/api-keys'] },
+        bad_format: { tone: 'error', icon: 'fa-times-circle', link: ['Open API keys', DASHBOARD + '/api-keys'] },
+        refused: { tone: 'error', icon: 'fa-times-circle', link: ['Open API keys', DASHBOARD + '/api-keys'] },
+        error: { tone: 'error', icon: 'fa-times-circle' },
+      };
+      function show(state, text) {
+        var look = STATES[state] || STATES.error;
+        box.empty().css('color', COLORS[look.tone]);
+        $('<i class="fa"></i>').addClass(look.icon).css('margin-right', '6px').appendTo(box);
+        $('<span></span>').text(text).appendTo(box);
+        if (look.link) {
+          $('<a target="_blank" rel="noopener"></a>')
+            .attr('href', look.link[1])
+            .text(look.link[0])
+            .css({ marginLeft: '8px', whiteSpace: 'nowrap' })
+            .appendTo(box);
+        }
+      }
       $('#node-config-turbo-notify-test').on('click', function () {
         var button = $(this);
-        result.text('Testing...').css('color', '');
+        box.empty().css('color', '').text('Testing...');
         button.prop('disabled', true);
         $.ajax({
           url: 'turbo-notify/test',
           type: 'POST',
           contentType: 'application/json',
-          data: JSON.stringify({
-            id: node.id,
-            apiKey: $('#node-config-input-apiKey').val(),
-            baseUrl: $('#node-config-input-baseUrl').val(),
-          }),
+          data: JSON.stringify({ id: node.id, apiKey: $('#node-config-input-apiKey').val() }),
         })
           .done(function (answer) {
-            if (answer.ok) {
-              result.text('Connected. The key works.').css('color', 'green');
-            } else {
-              result.text(answer.code + ': ' + answer.description).css('color', 'red');
-            }
+            show(answer.state, answer.description);
           })
           .fail(function () {
-            result.text('The test could not be run. Deploy the flow once and try again.').css('color', 'red');
+            show('error', 'The test could not be run. Deploy the flow once and try again.');
           })
           .always(function () {
             button.prop('disabled', false);
@@ -47,6 +64,29 @@
 </script>
 
 <script type="text/html" data-template-name="turbo-notify-config">
+  <div class="form-tips" style="margin-bottom: 14px">
+    <b>Send WhatsApp messages from your own number.</b> Before the nodes can work you need three things from your
+    Turbo Notify account (all in the dashboard):
+    <ol style="margin: 6px 0 6px 18px; padding: 0">
+      <li>
+        An account:
+        <a href="https://dashboard.turbonotify.com/auth/signup?locale=en" target="_blank" rel="noopener">create one for free</a>
+        or sign in.
+      </li>
+      <li>
+        Your WhatsApp number linked: open
+        <a href="https://dashboard.turbonotify.com/numbers" target="_blank" rel="noopener">Numbers</a> and connect it
+        (it takes a minute, like WhatsApp Web).
+      </li>
+      <li>
+        An API key: open
+        <a href="https://dashboard.turbonotify.com/api-keys" target="_blank" rel="noopener">API keys</a> and create one
+        with the <b>AI agent (MCP)</b> template. Copy it, it is shown only once.
+      </li>
+    </ol>
+    Then paste the key below and press <b>Test</b>.
+    <a href="https://docs.turbonotify.com/en/guides/quickstart/" target="_blank" rel="noopener">Step by step guide</a>
+  </div>
   <div class="form-row">
     <label for="node-config-input-name"><i class="fa fa-tag"></i> Name</label>
     <input type="text" id="node-config-input-name" placeholder="Turbo Notify account" />
@@ -56,47 +96,51 @@
     <input type="password" id="node-config-input-apiKey" placeholder="tn_live_..." />
   </div>
   <div class="form-row">
-    <label for="node-config-input-baseUrl"><i class="fa fa-globe"></i> Base URL</label>
-    <input type="text" id="node-config-input-baseUrl" />
-  </div>
-  <div class="form-row">
     <label>&nbsp;</label>
     <button type="button" class="red-ui-button" id="node-config-turbo-notify-test">Test</button>
-    <span id="node-config-turbo-notify-test-result" style="margin-left: 10px"></span>
+  </div>
+  <div class="form-row">
+    <div id="node-config-turbo-notify-test-result" style="margin-left: 0; line-height: 1.5" aria-live="polite"></div>
   </div>
 </script>
 
 <script type="text/html" data-help-name="turbo-notify-config">
-  <p>Holds the Turbo Notify API key that the other Turbo Notify nodes use.</p>
+  <p>Connects your Node-RED to your Turbo Notify account, so the WhatsApp nodes can send messages from your own number.</p>
+
+  <h3>Before you start</h3>
+  <p>You need three things, all in the <a href="https://dashboard.turbonotify.com" target="_blank">Turbo Notify dashboard</a>:</p>
+  <ol>
+    <li>An account (free to create).</li>
+    <li>Your WhatsApp number linked, under <b>Numbers</b>.</li>
+    <li>An API key, under <b>API keys</b>, created with the <b>AI agent (MCP)</b> template.</li>
+  </ol>
 
   <h3>Properties</h3>
   <dl class="message-properties">
     <dt>API key <span class="property-type">string</span></dt>
     <dd>
-      A key created under <b>API keys</b> in the Turbo Notify dashboard. Node-RED keeps it in its
-      credentials store, so it is never written to the flow file and does not appear when you export or share a
-      flow. Give it the scopes the nodes you use need: <code>messages:send</code> to send,
-      <code>messages:read</code> for message status and <code>events:read</code> for Events in.
+      The key from step 3. Node-RED keeps it in its credentials store, so it is never written to the flow file and
+      does not appear when you export or share a flow. A key made with the <b>AI agent (MCP)</b> template has the
+      scopes the nodes need: <code>messages:send</code> to send, <code>messages:read</code> for message status,
+      <code>events:read</code> for incoming messages and <code>numbers:read</code>, which lets the Test button check
+      that your number is linked.
     </dd>
-    <dt class="optional">Base URL <span class="property-type">string</span></dt>
-    <dd>
-      The address of the API. Leave the default unless Turbo Notify support gave you another one. A trailing
-      <code>/v1</code> is accepted and ignored.
-    </dd>
+    <dt class="optional">Name <span class="property-type">string</span></dt>
+    <dd>A label for this account in the list. Useful when you keep keys of several Turbo Notify accounts.</dd>
   </dl>
 
   <h3>Details</h3>
   <p>
-    The <b>Test</b> button reads the account usage with the key and shows whether the key was accepted. It
-    sends nothing. For a node you have not deployed yet, the key you typed is used. After a deploy, a field
-    that shows dots is tested with the key already stored.
+    The <b>Test</b> button reads your account with the key and then looks at your main WhatsApp number. It sends
+    nothing. It tells you in plain words if the key was refused, if the key is fine but no number is linked yet, or
+    if everything is ready. For an account node you have not deployed yet, the key you typed is used. After a
+    deploy, a field that shows dots is tested with the key already stored.
   </p>
-  <p>
-    You need a Turbo Notify account with a WhatsApp number linked to it. Messages leave from that number.
-  </p>
+  <p>The nodes always talk to <code>https://api.turbonotify.com</code>.</p>
 
   <h3>References</h3>
   <ul>
+    <li><a href="https://docs.turbonotify.com/en/guides/quickstart/">Quickstart: from sign-up to your first message</a></li>
     <li><a href="https://docs.turbonotify.com/en/general/access-key/">API keys and scopes</a></li>
   </ul>
 </script>

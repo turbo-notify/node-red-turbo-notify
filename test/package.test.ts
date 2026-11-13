@@ -80,25 +80,25 @@ describe('package contract (what the Flow Library and the scorecard read)', () =
   it('has eighteen importable example flows that hold no key and no real phone number', () => {
     const files = readdirSync(join(ROOT, 'examples')).filter((f) => f.endsWith('.json'));
     expect(files.sort()).toEqual([
-      'after-hours-auto-reply.json',
+      'whatsapp-after-hours-auto-reply.json',
       'camera-picture-to-whatsapp.json',
-      'confirm-delivery-or-alert.json',
-      'daily-report-to-a-list.json',
-      'daily-weather-forecast.json',
+      'confirm-whatsapp-delivery-or-alert.json',
+      'daily-whatsapp-report-to-a-list.json',
+      'daily-weather-forecast-on-whatsapp.json',
       'door-sensor-to-whatsapp.json',
       'http-endpoint-to-whatsapp.json',
-      'incoming-to-team-group.json',
-      'log-incoming-to-csv.json',
-      'menu-by-keyword.json',
-      'node-red-error-alert.json',
-      'order-confirmation.json',
-      'reply-to-an-incoming-message.json',
-      'scheduled-reminder.json',
-      'send-a-pdf.json',
-      'share-the-store-location.json',
-      'temperature-alert.json',
-      'website-down-alert.json',
-    ]);
+      'incoming-whatsapp-messages-to-a-team-group.json',
+      'log-incoming-whatsapp-messages-to-a-file.json',
+      'whatsapp-menu-by-keyword.json',
+      'node-red-error-alert-on-whatsapp.json',
+      'whatsapp-order-confirmation.json',
+      'reply-to-an-incoming-whatsapp-message.json',
+      'whatsapp-reminder-on-weekdays.json',
+      'send-a-pdf-on-whatsapp.json',
+      'share-your-store-location-on-whatsapp.json',
+      'temperature-alert-on-whatsapp.json',
+      'website-down-alert-on-whatsapp.json',
+    ].sort());
     const known = new Set([
       'tab', 'comment', 'inject', 'change', 'function', 'delay', 'debug', 'catch', 'switch', 'template',
       'http in', 'http response', 'http request', 'file',
@@ -113,8 +113,20 @@ describe('package contract (what the Flow Library and the scorecard read)', () =
       const tabs = nodes.filter((n) => n.type === 'tab');
       expect(tabs).toHaveLength(1);
       expect(String(tabs[0].info).length).toBeGreaterThan(20);
-      // Every example explains the setup (key, scope, number) in a comment node.
-      expect(nodes.some((n) => n.type === 'comment' && n.name === 'Setup' && /API key/.test(String(n.info)))).toBe(true);
+      // Every example starts with the same three steps (link the number, create the key, paste it) and the guide link.
+      const start = nodes.find((n) => n.type === 'comment' && String(n.name).startsWith('START HERE'));
+      expect(start).toBeDefined();
+      const steps = String(start?.info);
+      expect(steps).toContain('Setup in 3 steps');
+      expect(steps).toMatch(/Link your WhatsApp number.*Numbers/s);
+      expect(steps).toMatch(/Create an API key.*AI agent \(MCP\).*scope/s);
+      expect(steps).toMatch(/Paste it here.*Test/s);
+      expect(steps).toContain('https://docs.turbonotify.com/en/guides/quickstart/');
+      // The title and the description say WhatsApp, so the flow is found and understood in the library.
+      expect(`${tabs[0].label}`).toMatch(/WhatsApp/);
+      expect(String(tabs[0].info)).toMatch(/WhatsApp/);
+      // The address of the API is not a property of the flow (it would let a shared flow choose where your key goes).
+      for (const node of nodes.filter((n) => n.type === 'turbo-notify-config')) expect(node.baseUrl).toBeUndefined();
       for (const node of nodes) {
         expect(known.has(String(node.type))).toBe(true);
         expect(node.credentials).toBeUndefined();
@@ -145,7 +157,7 @@ describe('package contract (what the Flow Library and the scorecard read)', () =
   });
 
   it('the list example shows a delay node ahead of the send node', () => {
-    const nodes = JSON.parse(read('examples/daily-report-to-a-list.json')) as Array<{ type: string }>;
+    const nodes = JSON.parse(read('examples/daily-whatsapp-report-to-a-list.json')) as Array<{ type: string }>;
     expect(nodes.map((n) => n.type)).toContain('delay');
   });
 

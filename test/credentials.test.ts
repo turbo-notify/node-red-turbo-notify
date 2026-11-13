@@ -67,7 +67,7 @@ describe('a Catch node receives the failure', () => {
       await helper.load(
         ALL_NODES,
         [
-          { id: 'cfg', type: 'turbo-notify-config', baseUrl: 'https://api.turbonotify.com' },
+          { id: 'cfg', type: 'turbo-notify-config' },
           { id: 'n1', type: 'turbo-notify-send', server: 'cfg', to: '+12025550123', wires: [[]] },
           { id: 'c1', type: 'catch', scope: null, wires: [['out']] },
           { id: 'out', type: 'helper' },

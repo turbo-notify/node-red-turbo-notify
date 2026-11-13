@@ -10,40 +10,25 @@ Send WhatsApp messages from your own number, and start a flow when a message arr
 [ whatsapp events ] --> [ your logic ] --> [ whatsapp send ]
 ```
 
-## What you need
+## Get started in five minutes
 
-- A Turbo Notify account with a WhatsApp number linked to it.
-- A plan that covers the messages you send.
-- An API key created under **API keys** in the dashboard. Give it the scopes of the nodes you use: `messages:send` to send, `messages:read` to read the status of a message and `events:read` for the events node.
-- Node-RED 3.0.0 or later and Node.js 18 or later.
+You need a Turbo Notify account, your WhatsApp number linked to it and an API key. All three are made in the [Turbo Notify dashboard](https://dashboard.turbonotify.com); the [quickstart](https://docs.turbonotify.com/en/guides/quickstart/) shows each screen.
 
-## Install
+1. **Create an account** (it is free) or sign in, at [dashboard.turbonotify.com](https://dashboard.turbonotify.com/auth/signup?locale=en). Pick a plan that covers the messages you send.
+2. **Link your WhatsApp number.** Open **Numbers**, click **Connect main number**, choose **QR code** or **Pairing code** and follow the steps on your phone, in WhatsApp under Linked devices (the same way you link WhatsApp Web). Your phone keeps working as usual.
+3. **Create an API key.** Open **API keys** and create one with the **AI agent (MCP)** template, which has the scopes the nodes use: `messages:send` to send, `messages:read` for the status of a message, `events:read` for incoming messages and `numbers:read`, which lets **Test** check that your number is linked. Copy it, it is shown only once.
+4. **Install the nodes.** In Node-RED, open the menu, choose **Manage palette**, then **Install**, and search for `@turbo-notify/node-red-whatsapp` (or just `whatsapp`). Or, from your Node-RED user directory (usually `~/.node-red`): `npm install @turbo-notify/node-red-whatsapp`, then restart Node-RED. Needs Node-RED 3.0.0 or later and Node.js 18 or later. The nodes appear in the **Turbo Notify** category of the palette.
+5. **Send your first message.** Drag a **whatsapp send** node into a flow and double-click it. Next to **Account**, click the **+**, paste the key and press **Test**. It tells you in plain words whether the key works and whether your number is linked. Click **Add**, put your own phone number in **To**, in international format (`+12025550123`), wire an **inject** node with a text payload to it and deploy. Press the inject button: the node accepts the message at once and WhatsApp delivers it a moment later.
 
-In Node-RED, open the menu, choose **Manage palette**, then **Install**, and search for `@turbo-notify/node-red-whatsapp` (or just `whatsapp`).
-
-Or from the command line, in your Node-RED user directory (usually `~/.node-red`):
-
-```
-npm install @turbo-notify/node-red-whatsapp
-```
-
-Restart Node-RED. The nodes appear in the **Turbo Notify** category of the palette.
+The key is kept in the Node-RED credentials store, so it never appears in the flow file or in an exported flow. If you deploy before pasting a key, the node shows a yellow **paste your API key** instead of failing on the first message.
 
 **Coming from `@turbo-notify/node-red-turbo-notify`?** That package (0.1.x) is replaced by this one. The node types did not change, so your flows keep working: uninstall the old package, install this one and restart.
-
-## First message in two minutes
-
-1. Drag a **whatsapp send** node into a flow. Open it and add a new account: paste your API key and press **Test**.
-2. Put your own phone number in **To**, in international format (`+12025550123`).
-3. Wire an **inject** node (with a text payload) to it and deploy.
-
-Press the inject button. The node accepts the message at once and WhatsApp delivers it a moment later. The key is kept in the Node-RED credentials store, so it never appears in the flow file or in an exported flow.
 
 ## Nodes
 
 | Node | What it does |
 |---|---|
-| **Turbo Notify account** (config) | Holds the API key and the address of the API. Its **Test** button reads your account usage and tells you whether the key works. |
+| **Turbo Notify account** (config) | Holds your API key. Its **Test** button checks that the key works and that your WhatsApp number is linked, and says what to do if not. |
 | **whatsapp send** | Sends text, an image, video, audio, document or sticker (from a web address), or a location. Can reply to an earlier message. |
 | **whatsapp status** | Reads how far a message has got: pending, sent, delivered, read or failed. |
 | **whatsapp events** | Starts a flow when something happens on your number, such as a message arriving. Checks every 30 seconds by default. |
@@ -85,34 +70,34 @@ When the API refuses a call, the node shows the API error code in its status (a 
 
 ## Examples
 
-Import them from the menu: **Import**, then **Examples**, then **@turbo-notify/node-red-whatsapp**. Each flow has a **Setup** comment that says what to change (the key, the scopes, the number).
+Import them from the menu: **Import**, then **Examples**, then **@turbo-notify/node-red-whatsapp**. Each flow starts with a **START HERE** note that says what to change (the key, the scopes, the number).
 
 | Example | What it does |
 |---|---|
 | `door-sensor-to-whatsapp` | An alert text when a sensor reports an event, then a check of its delivery status. |
 | `camera-picture-to-whatsapp` | A picture from a camera snapshot address, with a caption. |
-| `daily-report-to-a-list` | A report sent every morning to several people, one message every 10 seconds. |
-| `scheduled-reminder` | A reminder on weekdays at 09:00. |
-| `temperature-alert` | One message when a temperature goes above a limit and one when it is back to normal, never a flood. |
-| `website-down-alert` | Checks an address every 5 minutes: one message when it goes down, one when it recovers. |
-| `node-red-error-alert` | A message when a node on the tab fails, at most one every 10 seconds. |
-| `daily-weather-forecast` | Today's forecast every morning from the free Open-Meteo service (no key). |
-| `send-a-pdf` | Sends a document, such as an invoice, with a caption. |
-| `confirm-delivery-or-alert` | Sends a message, checks its status 30 seconds later and warns you if it failed. |
+| `daily-whatsapp-report-to-a-list` | A report sent every morning to several people, one message every 10 seconds. |
+| `whatsapp-reminder-on-weekdays` | A reminder on weekdays at 09:00. |
+| `temperature-alert-on-whatsapp` | One message when a temperature goes above a limit and one when it is back to normal, never a flood. |
+| `website-down-alert-on-whatsapp` | Checks an address every 5 minutes: one message when it goes down, one when it recovers. |
+| `node-red-error-alert-on-whatsapp` | A message when a node on the tab fails, at most one every 10 seconds. |
+| `daily-weather-forecast-on-whatsapp` | Today's forecast every morning from the free Open-Meteo service (no key). |
+| `send-a-pdf-on-whatsapp` | Sends a document, such as an invoice, with a caption. |
+| `confirm-whatsapp-delivery-or-alert` | Sends a message, checks its status 30 seconds later and warns you if it failed. |
 | `http-endpoint-to-whatsapp` | `POST /whatsapp/alert` sends a message: any system that can make an HTTP call can use your number. It refuses every call (503) until you set a token of at least 16 characters in the tab variable `ALERT_TOKEN`. |
-| `order-confirmation` | `POST /whatsapp/orders` confirms an order to the customer with a written summary. |
-| `reply-to-an-incoming-message` | Answers every private message that arrives, using the events node. |
-| `menu-by-keyword` | Answers 1, 2 or 3 (or the words hours, address, person) with the right text, and the menu for anything else. |
-| `after-hours-auto-reply` | Tells people you are closed outside your opening hours, once every 12 hours per person. |
-| `incoming-to-team-group` | Forwards every private message to a WhatsApp group of your team. |
-| `share-the-store-location` | Sends a map location when someone asks where you are. |
-| `log-incoming-to-csv` | Keeps a CSV record of every message you receive. |
+| `whatsapp-order-confirmation` | `POST /whatsapp/orders` confirms an order to the customer with a written summary. |
+| `reply-to-an-incoming-whatsapp-message` | Answers every private message that arrives, using the events node. |
+| `whatsapp-menu-by-keyword` | Answers 1, 2 or 3 (or the words hours, address, person) with the right text, and the menu for anything else. |
+| `whatsapp-after-hours-auto-reply` | Tells people you are closed outside your opening hours, once every 12 hours per person. |
+| `incoming-whatsapp-messages-to-a-team-group` | Forwards every private message to a WhatsApp group of your team. |
+| `share-your-store-location-on-whatsapp` | Sends a map location when someone asks where you are. |
+| `log-incoming-whatsapp-messages-to-a-file` | Keeps a CSV record of every message you receive. |
 
 Every example uses the placeholder number `+12025550123`: replace it before you deploy. The flows that read messages use the events node, which checks every 30 seconds.
 
 ## Limits worth knowing
 
-- **Sending pace.** Your number sends one message every 5 to 10 seconds. A flow that sends a burst queues the messages, and a message that waits more than 5 minutes fails with `message_timeout` (it may still arrive). When a flow sends a list, put a **delay** node set to rate limit (one message every 10 seconds) in front of **whatsapp send**, as in the `daily-report-to-a-list` example, or split the list over several runs.
+- **Sending pace.** Your number sends one message every 5 to 10 seconds. A flow that sends a burst queues the messages, and a message that waits more than 5 minutes fails with `message_timeout` (it may still arrive). When a flow sends a list, put a **delay** node set to rate limit (one message every 10 seconds) in front of **whatsapp send**, as in the `daily-whatsapp-report-to-a-list` example, or split the list over several runs.
 - **Quotas and warm-up.** Plans limit messages and contacts per billing cycle, and a new number sends a limited volume in its first week. The API answers with a clear error code when a limit is reached.
 - **Media.** The API takes a public http or https address. Node-RED does not upload a file.
 - **Events are polled, not pushed.** The events node asks the API for new events every 30 seconds by default (never faster than every 10). Delivery is at least once, so keep `msg.payload.id` if a flow must never act twice on the same event. For sub-second delivery, use a webhook (see below).
@@ -126,7 +111,7 @@ Every example uses the placeholder number `+12025550123`: replace it before you 
 
   If a check fails (for example, the API is unreachable), the cursor does not move and the next check reads the same period again.
 
-- **The key stays with its address.** The key is sent only to the address in the config node, over https (an address on the same computer, such as `http://127.0.0.1:8080`, is also accepted). The Test button uses the address the node was deployed with, never one from the request, so deploy the node after changing its address and test again.
+- **The key goes only to Turbo Notify.** The nodes always talk to `https://api.turbonotify.com`, and the address is not a setting of a flow, so a flow you import or share can never choose where your key goes.
 
 ### Receiving events by webhook
 
@@ -146,6 +131,8 @@ npm run build
 ```
 
 Tests use `node-red-node-test-helper` with Jest and a mocked `fetch`: no test talks to the network.
+
+To try the nodes in a real editor without an account, run `npm run editor`. It starts Node-RED with this package installed and a stand-in for the API, and prints the keys to paste (`tn_live_good_connected` works, `tn_live_good_nonumber` works but has no number linked, anything else is refused). To point the nodes at another address on purpose (a test double or a staging copy), set `turboNotifyBaseUrl` in the `settings.js` of that Node-RED: only the administrator can, and it must be https or an address on the same computer.
 
 ## License
 

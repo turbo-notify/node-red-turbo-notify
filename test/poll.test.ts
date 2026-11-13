@@ -222,7 +222,7 @@ describe('Events in node', () => {
   };
 
   const flow = (props: Record<string, unknown> = {}) => [
-    { id: 'cfg', type: 'turbo-notify-config', baseUrl: 'https://api.turbonotify.com' },
+    { id: 'cfg', type: 'turbo-notify-config' },
     { id: 'ev', type: 'turbo-notify-events', server: 'cfg', types: 'message.received', number: '', interval: 30, wires: [['out']], ...props },
     { id: 'out', type: 'helper' },
   ];

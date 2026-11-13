@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.5.15
+
+A first-run review in a real Node-RED editor: can a person who just installed the nodes understand, alone, that they need a Turbo Notify account, a linked WhatsApp number and an API key? They could not, so:
+
+- The **Turbo Notify account** dialog now opens with the three things you need and a link to each screen of the dashboard (account, Numbers, API keys), and its list entry and title read "Turbo Notify account" instead of the technical node name. The whatsapp send, status and events dialogs say where to start and what `main` means.
+- The **Test** button now checks the key and then your main WhatsApp number, and says in plain words which of these you are in: ready, key works but no number linked yet, key refused, text that is not a key, or key without permission to read numbers. A button opens the right page of the dashboard. It no longer starts with a technical code and no longer says "works" when the number is not linked.
+- After a deploy without a key, the nodes show a yellow **paste your API key** at once (the events node waits instead of failing every poll).
+- **The Base URL setting is gone.** The nodes always use `https://api.turbonotify.com`. A flow you import or share used to be able to name another address and receive the key you pasted; now it cannot. A flow made with an older version that still carries an address ignores it and logs one line. To use another address on purpose (a test double or a staging copy), the administrator sets `turboNotifyBaseUrl` in `settings.js`.
+- All eighteen example flows start with a note called **START HERE** that repeats the three setup steps with links, their titles and descriptions say WhatsApp, and their account node carries no address.
+- `npm run editor` starts a real Node-RED with the package and a stand-in for the API, to try every state above without an account.
+
 ## Redirect of the first package name
 
 - `@turbo-notify/node-red-turbo-notify` 1.5.14 is a signpost with no nodes (folder `redirect/`). It depends on `@turbo-notify/node-red-whatsapp`, so an install or an update of the old name brings the new package and flows keep working. It is published by the same workflow on a tag named `redirect-1.5.14`.

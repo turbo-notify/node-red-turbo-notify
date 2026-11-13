@@ -24,6 +24,10 @@
 </script>
 
 <script type="text/html" data-template-name="turbo-notify-send">
+  <div class="form-tips" style="margin-bottom: 14px">
+    Sends WhatsApp messages from your own number through your Turbo Notify account. Need an account node first? Click the <b>+</b> next to <b>Account</b> and follow the three steps there:
+    a Turbo Notify account, your WhatsApp number linked, and an API key.
+  </div>
   <div class="form-row">
     <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
     <input type="text" id="node-input-name" placeholder="Name" />
@@ -40,10 +44,18 @@
     <label for="node-input-number"><i class="fa fa-mobile"></i> Number</label>
     <input type="text" id="node-input-number" placeholder="main" />
   </div>
+  <div class="form-tips" style="margin-top: -4px">
+    <code>main</code> is the WhatsApp number you linked first. Change it only if you linked extra numbers.
+  </div>
 </script>
 
 <script type="text/html" data-help-name="turbo-notify-send">
   <p>Sends a WhatsApp message from your Turbo Notify number: text, an image, video, audio, document or sticker from a web address, or a location.</p>
+
+  <p>
+    You need a Turbo Notify account with your WhatsApp number linked and an API key. The <b>Turbo Notify account</b>
+    node shows how to get them in three steps.
+  </p>
 
   <h3>Inputs</h3>
   <dl class="message-properties">

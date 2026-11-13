@@ -2,16 +2,16 @@
   {
     "id": "25b2c3d4e5f60001",
     "type": "tab",
-    "label": "After-hours auto reply",
+    "label": "WhatsApp after-hours auto reply",
     "disabled": false,
-    "info": "Tells people you are closed when they write outside your opening hours, once every 12 hours per person."
+    "info": "Tells people on WhatsApp that you are closed when they write outside your opening hours, once every 12 hours per person."
   },
   {
     "id": "25b2c3d4e5f60002",
     "type": "comment",
     "z": "25b2c3d4e5f60001",
-    "name": "Setup",
-    "info": "Before you run this flow: open the Turbo Notify account node, paste an API key and press Test. Your Turbo Notify account needs a WhatsApp number linked to it. The key needs the events:read scope (and messages:send to answer). Open the function node to set your days and hours (they use the time zone of the computer that runs Node-RED) and the pause between two replies to the same person. Group messages are skipped.",
+    "name": "START HERE: setup in 3 steps (select this note)",
+    "info": "**Setup in 3 steps** (once, about five minutes)\n\n1. **Link your WhatsApp number.** In the [Turbo Notify dashboard](https://dashboard.turbonotify.com) create an account if you have none (it is free), then open **Numbers** and connect your WhatsApp number. First time? Follow the [step by step guide](https://docs.turbonotify.com/en/guides/quickstart/).\n2. **Create an API key.** Open **API keys** and create one with the **AI agent (MCP)** template. Copy it, it is shown only once. This flow uses the scopes events:read and messages:send.\n3. **Paste it here.** Double-click a whatsapp node of this flow, click the pencil next to **Account**, paste the key and press **Test**. It tells you whether the key works and whether your number is linked.\n\n**About this flow.** Open the function node to set your days and hours (they use the time zone of the computer that runs Node-RED) and the pause between two replies to the same person. Group messages are skipped.",
     "x": 200,
     "y": 40,
     "wires": []
@@ -91,7 +91,6 @@
   {
     "id": "tn0cfg0000000001",
     "type": "turbo-notify-config",
-    "name": "My Turbo Notify account",
-    "baseUrl": "https://api.turbonotify.com"
+    "name": "My Turbo Notify account"
   }
 ]

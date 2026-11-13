@@ -31,6 +31,10 @@
 </script>
 
 <script type="text/html" data-template-name="turbo-notify-events">
+  <div class="form-tips" style="margin-bottom: 14px">
+    Starts a flow when WhatsApp messages arrive on your Turbo Notify number. Need an account node first? Click the <b>+</b> next to <b>Account</b> and follow the three steps there:
+    a Turbo Notify account, your WhatsApp number linked, and an API key.
+  </div>
   <div class="form-row">
     <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
     <input type="text" id="node-input-name" placeholder="Name" />
@@ -55,6 +59,11 @@
 
 <script type="text/html" data-help-name="turbo-notify-events">
   <p>Starts a flow when something happens on your WhatsApp number, such as a message arriving. It checks for new events at the interval you set.</p>
+
+  <p>
+    You need a Turbo Notify account with your WhatsApp number linked and an API key. The <b>Turbo Notify account</b>
+    node shows how to get them in three steps.
+  </p>
 
   <h3>Outputs</h3>
   <dl class="message-properties">

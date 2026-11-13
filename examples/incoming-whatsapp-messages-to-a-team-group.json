@@ -2,7 +2,7 @@
   {
     "id": "26b2c3d4e5f60001",
     "type": "tab",
-    "label": "Incoming messages to a team group",
+    "label": "Incoming WhatsApp messages to a team group",
     "disabled": false,
     "info": "Forwards every private message you receive to a WhatsApp group of your team."
   },
@@ -10,8 +10,8 @@
     "id": "26b2c3d4e5f60002",
     "type": "comment",
     "z": "26b2c3d4e5f60001",
-    "name": "Setup",
-    "info": "Before you run this flow: open the Turbo Notify account node, paste an API key and press Test. Your Turbo Notify account needs a WhatsApp number linked to it. The key needs the events:read scope (and messages:send to answer). Replace the group id in the function node with the id of your team group (the id starts with grp_, list your groups in the dashboard or with the API). Your number must be a member of that group. Messages from groups are not forwarded, so the flow never loops.",
+    "name": "START HERE: setup in 3 steps (select this note)",
+    "info": "**Setup in 3 steps** (once, about five minutes)\n\n1. **Link your WhatsApp number.** In the [Turbo Notify dashboard](https://dashboard.turbonotify.com) create an account if you have none (it is free), then open **Numbers** and connect your WhatsApp number. First time? Follow the [step by step guide](https://docs.turbonotify.com/en/guides/quickstart/).\n2. **Create an API key.** Open **API keys** and create one with the **AI agent (MCP)** template. Copy it, it is shown only once. This flow uses the scopes events:read and messages:send.\n3. **Paste it here.** Double-click a whatsapp node of this flow, click the pencil next to **Account**, paste the key and press **Test**. It tells you whether the key works and whether your number is linked.\n\n**About this flow.** Replace the group id in the function node with the id of your team group (the id starts with grp_, list your groups in the dashboard or with the API). Your number must be a member of that group. Messages from groups are not forwarded, so the flow never loops.",
     "x": 200,
     "y": 40,
     "wires": []
@@ -91,7 +91,6 @@
   {
     "id": "tn0cfg0000000001",
     "type": "turbo-notify-config",
-    "name": "My Turbo Notify account",
-    "baseUrl": "https://api.turbonotify.com"
+    "name": "My Turbo Notify account"
   }
 ]

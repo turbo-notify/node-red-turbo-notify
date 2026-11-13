@@ -1,6 +1,6 @@
 import { type ApiConfig, apiRequest } from '../lib/client';
 import { ValidationError } from '../lib/errors';
-import { failNode, readContext, writeContext } from '../lib/node-support';
+import { failNode, markMissingKey, readContext, writeContext } from '../lib/node-support';
 import {
   DEFAULT_INTERVAL_SECONDS,
   type EventRecord,
@@ -24,13 +24,19 @@ export = function register(RED: Red): void {
     let types: string[];
     let number: string;
     try {
-      if (!server) throw new ValidationError('Server', 'is not set. Choose a Turbo Notify config node in this node.');
+      if (!server) throw new ValidationError('Server', 'is not set. Choose a Turbo Notify account in the Account field of this node.');
       seconds = checkInterval(config.interval ?? DEFAULT_INTERVAL_SECONDS);
       types = parseTypes(config.types);
       number = isBlank(config.number) ? '' : numberRef(config.number, 'Number');
     } catch (error) {
       // A bad setting is reported once, at deploy time, and the node does not poll.
       node.error(failNode(node, error));
+      return;
+    }
+
+    // Without a key there is nothing to poll with: say so once, in yellow, and wait for a deploy with the key.
+    if (markMissingKey(node, server)) {
+      node.warn('The API key is not set. Open the Turbo Notify account node, paste your key and deploy again.');
       return;
     }
 

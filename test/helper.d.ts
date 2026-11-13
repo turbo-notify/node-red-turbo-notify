@@ -33,6 +33,8 @@ declare module 'node-red-node-test-helper' {
       credentials?: Record<string, Record<string, string>>,
     ): Promise<void>;
     unload(): Promise<void>;
+    /** Merges runtime settings (what settings.js holds); call it before load. {} resets them. */
+    settings(userSettings: Record<string, unknown>): void;
     getNode(id: string): TestNode;
     request(): HttpRequest;
     /** The runtime's node registry. getFlows() is what the admin API returns for GET /flows. */
