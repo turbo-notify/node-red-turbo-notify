@@ -126,9 +126,11 @@
     <code>msg.error.cause.requiredScope</code> and <code>msg.error.cause.retryAfter</code>.
   </p>
   <p>
-    <b>Bursts.</b> Your number sends one message every 5 to 10 seconds, so a flow that sends many messages at
-    once queues them. A message that waits more than 5 minutes fails with <code>message_timeout</code> (it may
-    still arrive). Put a delay node in front of this one to release one message at a time.
+    <b>Bursts.</b> Your number keeps a minimum gap between two sends that depends on the plan (6 seconds on Free).
+    A send that comes sooner is refused with <code>send_rate_spacing</code> and a <code>Retry-After</code> time; it is
+    not queued. Put a delay node set to rate limit (one message every 10 seconds) in front of this one to release one
+    message at a time. A message that WhatsApp does not confirm within 5 minutes fails with <code>message_timeout</code>
+    (it may still arrive).
   </p>
   <p>Messages leave from the WhatsApp number linked to your Turbo Notify account, so send only what your recipients expect.</p>
 
