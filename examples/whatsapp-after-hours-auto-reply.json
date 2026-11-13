@@ -38,7 +38,7 @@
     "type": "function",
     "z": "25b2c3d4e5f60001",
     "name": "closed? answer once",
-    "func": "// Answers a private message when it arrives outside opening hours, at most once per COOLDOWN_HOURS per person.\nconst OPEN_DAYS = [1, 2, 3, 4, 5]; // Monday to Friday (Sunday is 0)\nconst OPEN_FROM = 9;               // 09:00\nconst OPEN_UNTIL = 18;             // 18:00\nconst COOLDOWN_HOURS = 12;\n\nconst event = msg.payload;\nif (event.type !== 'message.received') {\n    return null;\n}\nconst data = event.data || {};\nconst sender = data.from || {};\nif ((data.to && data.to.group_id) || !sender.number) {\n    return null;\n}\nconst when = new Date(event.created_at || Date.now());\nconst hour = when.getHours() + when.getMinutes() / 60;\nif (OPEN_DAYS.includes(when.getDay()) && hour >= OPEN_FROM && hour < OPEN_UNTIL) {\n    return null;\n}\nconst answeredAt = flow.get('answeredAt') || {};\nif (when.getTime() - (answeredAt[sender.number] || 0) < COOLDOWN_HOURS * 3600 * 1000) {\n    return null;\n}\nansweredAt[sender.number] = when.getTime();\nflow.set('answeredAt', answeredAt);\n// Never more than 60 answers an hour in all, so a flood from many numbers cannot use up your message allowance.\nconst MAX_ALL = 60;\nconst nowMs = event.created_at ? new Date(event.created_at).getTime() : Date.now();\nconst lastHour = (flow.get('sentAll') || []).filter((t) => t > nowMs - 3600 * 1000);\nif (lastHour.length >= MAX_ALL) {\n    return null;\n}\nlastHour.push(nowMs);\nflow.set('sentAll', lastHour);\nmsg.to = '+' + sender.number;\nmsg.number = event.number_alias || 'main';\nmsg.payload = 'Thanks for your message. We are closed now and we answer from Monday to Friday, ' + OPEN_FROM + ':00 to ' + OPEN_UNTIL + ':00.';\nreturn msg;",
+    "func": "// Answers a private message when it arrives outside opening hours, at most once per COOLDOWN_HOURS per person.\nconst OPEN_DAYS = [1, 2, 3, 4, 5]; // Monday to Friday (Sunday is 0)\nconst OPEN_FROM = 9;               // 09:00\nconst OPEN_UNTIL = 18;             // 18:00\nconst COOLDOWN_HOURS = 12;\nconst MAX_ALL = 60; // never more than this many answers an hour in all, so a flood cannot use up your message allowance\n\nconst event = msg.payload;\nif (event.type !== 'message.received') {\n    return null;\n}\nconst data = event.data || {};\nconst sender = data.from || {};\nif ((data.to && data.to.group_id) || !sender.number) {\n    return null;\n}\nconst when = new Date(event.created_at || Date.now());\nconst hour = when.getHours() + when.getMinutes() / 60;\nif (OPEN_DAYS.includes(when.getDay()) && hour >= OPEN_FROM && hour < OPEN_UNTIL) {\n    return null;\n}\nconst now = when.getTime();\nconst answeredAt = flow.get('answeredAt') || {};\nconst sentAll = (flow.get('sentAll') || []).filter((t) => t > now - 3600 * 1000);\nif (now - (answeredAt[sender.number] || 0) < COOLDOWN_HOURS * 3600 * 1000 || sentAll.length >= MAX_ALL) {\n    return null;\n}\nansweredAt[sender.number] = now;\nsentAll.push(now);\nflow.set('answeredAt', answeredAt);\nflow.set('sentAll', sentAll);\nmsg.to = '+' + sender.number;\nmsg.number = event.number_alias || 'main';\nmsg.payload = 'Thanks for your message. We are closed now and we answer from Monday to Friday, ' + OPEN_FROM + ':00 to ' + OPEN_UNTIL + ':00.';\nreturn msg;",
     "outputs": 1,
     "timeout": 0,
     "noerr": 0,
@@ -61,7 +61,7 @@
     "server": "tn0cfg0000000001",
     "to": "",
     "number": "main",
-    "x": 700,
+    "x": 880,
     "y": 140,
     "wires": [
       [
@@ -82,7 +82,7 @@
     "targetType": "msg",
     "statusVal": "",
     "statusType": "auto",
-    "x": 920,
+    "x": 1100,
     "y": 140,
     "wires": [
       []
@@ -110,7 +110,7 @@
     "drop": false,
     "allowrate": false,
     "outputs": 1,
-    "x": 530,
+    "x": 650,
     "y": 140,
     "wires": [
       [

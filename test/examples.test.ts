@@ -576,6 +576,17 @@ describe('example flows run on the real nodes', () => {
       expect(run.calls).toHaveLength(20);
     });
 
+    it('one person who floods the menu cannot use up the budget of everybody else', async () => {
+      const run = await start('whatsapp-menu-by-keyword.json');
+      for (let n = 0; n < 80; n += 1) {
+        run.deliver(incoming('3', {}, '2026-06-08T10:00:00'));
+      }
+      await until(() => run.calls.length === 6, 'six answers for the flooder');
+      run.deliver(incoming('2', { from: { name: 'Bia', number: '12025550177' } }, '2026-06-08T10:01:00'));
+      await until(() => run.calls.length === 7, 'an answer for somebody else');
+      expect(body(run.calls[6]).to).toEqual({ number: '+12025550177' });
+    });
+
     it('a name with an at sign and digits is not echoed as a mention by the reply flow', async () => {
       const run = await start('reply-to-an-incoming-whatsapp-message.json');
       run.deliver(incoming('hi', { from: { name: '@5511977776661', number: '12025550142' } }));

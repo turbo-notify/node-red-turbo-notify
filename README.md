@@ -89,7 +89,7 @@ Import them from the menu: **Import**, then **Examples**, then **@turbo-notify/n
 | `reply-to-an-incoming-whatsapp-message` | Answers a private message that arrives, at most once an hour for each person, using the events node. |
 | `whatsapp-menu-by-keyword` | Answers 1, 2 or 3 (or the words hours, address, person) with the right text, and the menu for anything else. |
 | `whatsapp-after-hours-auto-reply` | Tells people you are closed outside your opening hours, once every 12 hours per person. |
-| `incoming-whatsapp-messages-to-a-team-group` | Forwards every private message to a WhatsApp group of your team. |
+| `incoming-whatsapp-messages-to-a-team-group` | Forwards the private messages you receive to a WhatsApp group of your team (at most 5 an hour from one person and 20 in all). |
 | `share-your-store-location-on-whatsapp` | Sends a map location when someone asks where you are. |
 | `log-incoming-whatsapp-messages-to-a-file` | Keeps a CSV record of every message you receive. |
 
