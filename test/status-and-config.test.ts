@@ -32,6 +32,14 @@ describe('Status node', () => {
     expect(out?.payload).toEqual({ message_id: ID, status: 'delivered' });
   });
 
+  it.each(['.', '..'])('a number of "%s" is refused: it would fold into another route', async (number) => {
+    fake = mockFetch({ body: { status: 'sent' } });
+    await helper.load(ALL_NODES, flow(), { cfg: { apiKey: KEY } });
+    const { error } = await runThrough('s1', { messageId: ID, number });
+    expect(error?.message).toContain('msg.number');
+    expect(fake.calls).toHaveLength(0);
+  });
+
   it('reads the id from a text payload or from payload.message_id, and the number from msg.number', async () => {
     fake = mockFetch({ body: { status: 'sent' } });
     await helper.load(ALL_NODES, flow(), { cfg: { apiKey: KEY } });

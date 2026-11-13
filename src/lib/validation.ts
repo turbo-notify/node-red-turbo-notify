@@ -109,7 +109,8 @@ export function idempotencyKey(value: unknown, where: string): string | undefine
 export function numberRef(value: unknown, where: string): string {
   const ref = asString(value);
   if (ref === '') throw new ValidationError(where, 'is empty. Use main, the alias of an extra number or its num_ id.');
-  if (ref.length > 128 || [...ref].some((char) => char.charCodeAt(0) < 32)) {
+  // `.` and `..` survive URL encoding and the address builder would fold them into another route.
+  if (ref === '.' || ref === '..' || ref.length > 128 || [...ref].some((char) => char.charCodeAt(0) < 32)) {
     throw new ValidationError(where, 'is not a valid number alias or id');
   }
   return ref;

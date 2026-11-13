@@ -146,6 +146,8 @@ describe('Send: validation fails before any request and names the property', () 
     ['media and location together', { to: '+12025550123', media: { type: 'image', url: 'https://example.com/a.jpg' }, location: { latitude: 1, longitude: 1 } }, 'msg.media'],
     ['latitude out of range', { to: '+12025550123', location: { latitude: 91, longitude: 0 } }, 'msg.location.latitude'],
     ['idempotency key too long', { payload: 'x', to: '+12025550123', idempotencyKey: 'k'.repeat(256) }, 'msg.idempotencyKey'],
+    ['number ref that folds into another route (..)', { payload: 'x', to: '+12025550123', number: '..' }, 'msg.number'],
+    ['number ref that folds into another route (.)', { payload: 'x', to: '+12025550123', number: '.' }, 'msg.number'],
     ['no recipient anywhere', { payload: 'x' }, "node property 'To'"],
   ];
 
