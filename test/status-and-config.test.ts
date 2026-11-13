@@ -80,7 +80,15 @@ type TestBody = { ok: boolean; state: string; description: string; code?: string
 /** The API as the Test button sees it: usage, then the main number. */
 const api = (options: { usage?: { status: number; body: unknown }; number?: { status: number; body: unknown } } = {}) =>
   (call: { url: string }) => {
-    const usage = options.usage ?? { status: 200, body: { plan: 'solo' } };
+    // The shape of GET /v1/usage in the API docs (usage/quota).
+    const usage = options.usage ?? {
+      status: 200,
+      body: {
+        messages: { used: 12, quota: 300, remaining: 288, resets_at: '2026-12-01T00:00:00Z', tier: 'FREE' },
+        contacts: { used: 1, quota: 2, remaining: 1, resets_at: '2026-12-01T00:00:00Z', tier: 'FREE' },
+        numbers: [{ alias: 'main', messages: { used: 12, quota: 300, remaining: 288 }, contacts: { used: 1, quota: 2, remaining: 1 } }],
+      },
+    };
     const number = options.number ?? { status: 200, body: { status: 'connected' } };
     return call.url.endsWith('/v1/usage') ? usage : number;
   };
@@ -90,6 +98,14 @@ describe('Config node Test button', () => {
     helper.request().post('/turbo-notify/test').send(body);
   const answerOf = async (body: Record<string, unknown>) => (await post(body)).body as TestBody;
 
+  it('still says ready, without the usage sentence, when the usage answer has another shape', async () => {
+    fake = mockFetch(api({ usage: { status: 200, body: { unexpected: true } } }));
+    await helper.load(ALL_NODES, flow(), { cfg: { apiKey: KEY } });
+    const answer = await answerOf({ id: 'cfg', apiKey: '__PWRD__' });
+    expect(answer.state).toBe('ready');
+    expect(answer.description).toBe('Connected. The key works and your WhatsApp number is linked.');
+  });
+
   it('reads GET /v1/usage and then the main number with the stored key, and says everything is ready', async () => {
     fake = mockFetch(api());
     await helper.load(ALL_NODES, flow(), { cfg: { apiKey: KEY } });
@@ -97,7 +113,8 @@ describe('Config node Test button', () => {
     expect(answer).toEqual({
       ok: true,
       state: 'ready',
-      description: 'Connected. The key works and your WhatsApp number is linked.',
+      description:
+        'Connected. The key works and your WhatsApp number is linked. This cycle: 12 of 300 messages used, the count starts again on Dec 1, 2026.',
     });
     expect(fake.calls.map((c) => `${c.method} ${c.url}`)).toEqual([
       'GET https://api.turbonotify.com/v1/usage',

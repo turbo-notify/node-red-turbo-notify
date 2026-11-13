@@ -229,6 +229,16 @@ describe('Send: errors from the API', () => {
     expect(String(errorMsg?.errorDescription)).toContain('msg.to');
   });
 
+  it('a message quota error says what a cycle is and where the date is, and the Catch node still gets the code', async () => {
+    const { error, errorMsg } = await send(
+      { payload: 'x', to: '+12025550123' },
+      {},
+      { status: 429, body: { error: 'messages_quota_exceeded' } },
+    );
+    expect(String(error)).toBe('messages_quota_exceeded');
+    expect(String(errorMsg?.errorDescription)).toMatch(/one month.*Billing in the dashboard.*bigger plan/);
+  });
+
   it('a 429 carries the Retry-After hint', async () => {
     const { error } = await send(
       { payload: 'x', to: '+12025550123' },

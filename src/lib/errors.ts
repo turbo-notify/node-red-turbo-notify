@@ -57,9 +57,9 @@ const KNOWN: Record<string, string> = {
   feature_not_available: `The current plan does not include this feature. Compare plans under Billing in the dashboard (${DASHBOARD}/billing).`,
   subscription_inactive: `The subscription is not active. Sort out the payment under Billing in the dashboard (${DASHBOARD}/billing).`,
   messages_quota_exceeded:
-    "The number's message allowance is used up. It resets when the billing cycle turns, and retrying now gives the same answer.",
+    "The message allowance of this number for the current billing cycle (one month) is used up. It starts again when the cycle turns (the date is under Billing in the dashboard) or right after a change to a bigger plan, and retrying now gives the same answer.",
   contact_quota_exceeded:
-    "The number's contact allowance is used up. It resets when the billing cycle turns, and retrying now gives the same answer.",
+    "The contact allowance of this number for the current billing cycle (one month) is used up. It starts again when the cycle turns (the date is under Billing in the dashboard) or right after a change to a bigger plan, and retrying now gives the same answer.",
   send_rate_spacing:
     'Messages are going out faster than this number allows. Wait for the Retry-After time, or add a delay node between sends.',
   rate_limit_exceeded: 'Too many requests. Wait for the Retry-After time and try again.',

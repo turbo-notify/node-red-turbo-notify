@@ -31,6 +31,23 @@ function apiConfigOf(apiKey: unknown, baseUrl: unknown): ApiConfig {
 }
 
 /** The dashboard address inside a description is a link in the editor, so the text drops it. */
+/**
+ * What the account has used in the current cycle, in one sentence, from the answer of GET /v1/usage
+ * (`messages: { used, quota, resets_at }`). Empty when the answer has another shape: the Test button
+ * must never fail because of a sentence it adds.
+ */
+function usageSentence(usage: unknown): string {
+  const messages = (usage as { messages?: { used?: unknown; quota?: unknown; resets_at?: unknown } } | null)?.messages;
+  if (!messages || typeof messages.used !== 'number' || typeof messages.quota !== 'number') return '';
+  let sentence = ` This cycle: ${messages.used} of ${messages.quota} messages used`;
+  const resets = typeof messages.resets_at === 'string' ? new Date(messages.resets_at) : undefined;
+  if (resets && !Number.isNaN(resets.getTime())) {
+    const day = new Intl.DateTimeFormat('en', { dateStyle: 'medium', timeZone: 'UTC' }).format(resets);
+    sentence += `, the count starts again on ${day}`;
+  }
+  return `${sentence}.`;
+}
+
 const withoutDashboardUrl = (text: string): string => text.replace(/\s*\(https:\/\/dashboard\.turbonotify\.com[^)]*\)/g, '');
 
 export = function register(RED: Red): void {
@@ -77,8 +94,9 @@ export = function register(RED: Red): void {
     } catch (error) {
       return { ok: false, state: 'error', code: 'invalid_input', description: (error as Error).message };
     }
+    let usage = '';
     try {
-      await apiRequest(config, { method: 'GET', path: '/usage' });
+      usage = usageSentence(await apiRequest(config, { method: 'GET', path: '/usage' }));
     } catch (error) {
       if (error instanceof ApiError) {
         return { ok: false, state: 'refused', code: error.code, description: withoutDashboardUrl(error.details.description) };
@@ -89,7 +107,7 @@ export = function register(RED: Red): void {
     try {
       const number = await apiRequest<{ status?: unknown }>(config, { method: 'GET', path: '/numbers/main' });
       if (number.status === 'connected') {
-        return { ok: true, state: 'ready', description: 'Connected. The key works and your WhatsApp number is linked.' };
+        return { ok: true, state: 'ready', description: `Connected. The key works and your WhatsApp number is linked.${usage}` };
       }
       return {
         ok: true,
