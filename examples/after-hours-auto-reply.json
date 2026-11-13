@@ -1,0 +1,97 @@
+[
+  {
+    "id": "25b2c3d4e5f60001",
+    "type": "tab",
+    "label": "After-hours auto reply",
+    "disabled": false,
+    "info": "Tells people you are closed when they write outside your opening hours, once every 12 hours per person."
+  },
+  {
+    "id": "25b2c3d4e5f60002",
+    "type": "comment",
+    "z": "25b2c3d4e5f60001",
+    "name": "Setup",
+    "info": "Before you run this flow: open the Turbo Notify account node, paste an API key and press Test. Your Turbo Notify account needs a WhatsApp number linked to it. The key needs the events:read scope (and messages:send to answer). Open the function node to set your days and hours (they use the time zone of the computer that runs Node-RED) and the pause between two replies to the same person. Group messages are skipped.",
+    "x": 200,
+    "y": 40,
+    "wires": []
+  },
+  {
+    "id": "25b2c3d4e5f60003",
+    "type": "turbo-notify-events",
+    "z": "25b2c3d4e5f60001",
+    "name": "incoming messages",
+    "server": "tn0cfg0000000001",
+    "types": "message.received",
+    "number": "",
+    "interval": 30,
+    "x": 180,
+    "y": 140,
+    "wires": [
+      [
+        "25b2c3d4e5f60004"
+      ]
+    ]
+  },
+  {
+    "id": "25b2c3d4e5f60004",
+    "type": "function",
+    "z": "25b2c3d4e5f60001",
+    "name": "closed? answer once",
+    "func": "// Answers a private message when it arrives outside opening hours, at most once per COOLDOWN_HOURS per person.\nconst OPEN_DAYS = [1, 2, 3, 4, 5]; // Monday to Friday (Sunday is 0)\nconst OPEN_FROM = 9;               // 09:00\nconst OPEN_UNTIL = 18;             // 18:00\nconst COOLDOWN_HOURS = 12;\n\nconst event = msg.payload;\nconst data = event.data || {};\nconst sender = data.from || {};\nif ((data.to && data.to.group_id) || !sender.number) {\n    return null;\n}\nconst when = new Date(event.created_at || Date.now());\nconst hour = when.getHours() + when.getMinutes() / 60;\nif (OPEN_DAYS.includes(when.getDay()) && hour >= OPEN_FROM && hour < OPEN_UNTIL) {\n    return null;\n}\nconst answeredAt = flow.get('answeredAt') || {};\nif (when.getTime() - (answeredAt[sender.number] || 0) < COOLDOWN_HOURS * 3600 * 1000) {\n    return null;\n}\nansweredAt[sender.number] = when.getTime();\nflow.set('answeredAt', answeredAt);\nmsg.to = '+' + sender.number;\nmsg.number = event.number_alias || 'main';\nmsg.payload = 'Thanks for your message. We are closed now and we answer from Monday to Friday, ' + OPEN_FROM + ':00 to ' + OPEN_UNTIL + ':00.';\nreturn msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 420,
+    "y": 140,
+    "wires": [
+      [
+        "25b2c3d4e5f60005"
+      ]
+    ]
+  },
+  {
+    "id": "25b2c3d4e5f60005",
+    "type": "turbo-notify-send",
+    "z": "25b2c3d4e5f60001",
+    "name": "answer on WhatsApp",
+    "server": "tn0cfg0000000001",
+    "to": "",
+    "number": "main",
+    "x": 700,
+    "y": 140,
+    "wires": [
+      [
+        "25b2c3d4e5f60006"
+      ]
+    ]
+  },
+  {
+    "id": "25b2c3d4e5f60006",
+    "type": "debug",
+    "z": "25b2c3d4e5f60001",
+    "name": "accepted",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 920,
+    "y": 140,
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "tn0cfg0000000001",
+    "type": "turbo-notify-config",
+    "name": "My Turbo Notify account",
+    "baseUrl": "https://api.turbonotify.com"
+  }
+]

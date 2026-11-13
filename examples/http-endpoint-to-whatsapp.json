@@ -1,0 +1,158 @@
+[
+  {
+    "id": "22b2c3d4e5f60001",
+    "type": "tab",
+    "label": "HTTP endpoint to WhatsApp",
+    "disabled": false,
+    "info": "Any system can send a WhatsApp message with one HTTP call: POST /whatsapp/alert.",
+    "env": [
+      {
+        "name": "ALERT_TOKEN",
+        "type": "str",
+        "value": "change-me"
+      }
+    ]
+  },
+  {
+    "id": "22b2c3d4e5f60002",
+    "type": "comment",
+    "z": "22b2c3d4e5f60001",
+    "name": "Setup",
+    "info": "Before you run this flow: open the Turbo Notify account node, paste an API key and press Test. Your Turbo Notify account needs a WhatsApp number linked to it. The key needs the messages:send scope. Call it with: curl -X POST http://localhost:1880/whatsapp/alert -H 'x-token: change-me' -H 'Content-Type: application/json' -d '{\"to\":\"+12025550123\",\"message\":\"Backup finished\"}'. The token is the ALERT_TOKEN variable of this tab (Flow properties): change it before you expose the endpoint. The answer is 202 with the message id, 400 for a bad body, 401 for a wrong token and 502 when Turbo Notify refuses the message.",
+    "x": 200,
+    "y": 40,
+    "wires": []
+  },
+  {
+    "id": "22b2c3d4e5f60003",
+    "type": "http in",
+    "z": "22b2c3d4e5f60001",
+    "name": "POST /whatsapp/alert",
+    "url": "/whatsapp/alert",
+    "method": "post",
+    "upload": false,
+    "swaggerDoc": "",
+    "x": 180,
+    "y": 140,
+    "wires": [
+      [
+        "22b2c3d4e5f60004"
+      ]
+    ]
+  },
+  {
+    "id": "22b2c3d4e5f60004",
+    "type": "function",
+    "z": "22b2c3d4e5f60001",
+    "name": "check token and body",
+    "func": "// Check the shared token, then the body, then hand the message to the send node.\nconst token = env.get('ALERT_TOKEN');\nif (token && msg.req.headers['x-token'] !== token) {\n    msg.statusCode = 401;\n    msg.payload = { error: 'unauthorized' };\n    return [null, msg];\n}\nconst body = msg.payload || {};\nif (typeof body.to !== 'string' || typeof body.message !== 'string' || !body.message) {\n    msg.statusCode = 400;\n    msg.payload = { error: 'send {\"to\": \"+12025550123\", \"message\": \"text\"}' };\n    return [null, msg];\n}\nmsg.to = body.to;\nmsg.payload = body.message;\nreturn [msg, null];",
+    "outputs": 2,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 420,
+    "y": 140,
+    "wires": [
+      [
+        "22b2c3d4e5f60005"
+      ],
+      [
+        "22b2c3d4e5f60007"
+      ]
+    ]
+  },
+  {
+    "id": "22b2c3d4e5f60005",
+    "type": "turbo-notify-send",
+    "z": "22b2c3d4e5f60001",
+    "name": "send on WhatsApp",
+    "server": "tn0cfg0000000001",
+    "to": "",
+    "number": "main",
+    "x": 680,
+    "y": 120,
+    "wires": [
+      [
+        "22b2c3d4e5f60006"
+      ]
+    ]
+  },
+  {
+    "id": "22b2c3d4e5f60006",
+    "type": "function",
+    "z": "22b2c3d4e5f60001",
+    "name": "answer 202",
+    "func": "msg.statusCode = 202;\nmsg.payload = { message_id: msg.messageId, status: msg.payload.status };\nreturn msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 900,
+    "y": 120,
+    "wires": [
+      [
+        "22b2c3d4e5f60007"
+      ]
+    ]
+  },
+  {
+    "id": "22b2c3d4e5f60007",
+    "type": "http response",
+    "z": "22b2c3d4e5f60001",
+    "name": "answer",
+    "statusCode": "",
+    "headers": {},
+    "x": 1120,
+    "y": 160,
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "22b2c3d4e5f60008",
+    "type": "catch",
+    "z": "22b2c3d4e5f60001",
+    "name": "Turbo Notify refused",
+    "scope": [
+      "22b2c3d4e5f60005"
+    ],
+    "uncaught": false,
+    "x": 680,
+    "y": 240,
+    "wires": [
+      [
+        "22b2c3d4e5f60009"
+      ]
+    ]
+  },
+  {
+    "id": "22b2c3d4e5f60009",
+    "type": "function",
+    "z": "22b2c3d4e5f60001",
+    "name": "answer 502",
+    "func": "msg.statusCode = 502;\nmsg.payload = { error: msg.error.message };\nreturn msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 900,
+    "y": 240,
+    "wires": [
+      [
+        "22b2c3d4e5f60007"
+      ]
+    ]
+  },
+  {
+    "id": "tn0cfg0000000001",
+    "type": "turbo-notify-config",
+    "name": "My Turbo Notify account",
+    "baseUrl": "https://api.turbonotify.com"
+  }
+]

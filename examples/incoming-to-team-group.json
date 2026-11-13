@@ -1,0 +1,97 @@
+[
+  {
+    "id": "26b2c3d4e5f60001",
+    "type": "tab",
+    "label": "Incoming messages to a team group",
+    "disabled": false,
+    "info": "Forwards every private message you receive to a WhatsApp group of your team."
+  },
+  {
+    "id": "26b2c3d4e5f60002",
+    "type": "comment",
+    "z": "26b2c3d4e5f60001",
+    "name": "Setup",
+    "info": "Before you run this flow: open the Turbo Notify account node, paste an API key and press Test. Your Turbo Notify account needs a WhatsApp number linked to it. The key needs the events:read scope (and messages:send to answer). Replace the group id in the function node with the id of your team group (the id starts with grp_, list your groups in the dashboard or with the API). Your number must be a member of that group. Messages from groups are not forwarded, so the flow never loops.",
+    "x": 200,
+    "y": 40,
+    "wires": []
+  },
+  {
+    "id": "26b2c3d4e5f60003",
+    "type": "turbo-notify-events",
+    "z": "26b2c3d4e5f60001",
+    "name": "incoming messages",
+    "server": "tn0cfg0000000001",
+    "types": "message.received",
+    "number": "",
+    "interval": 30,
+    "x": 180,
+    "y": 140,
+    "wires": [
+      [
+        "26b2c3d4e5f60004"
+      ]
+    ]
+  },
+  {
+    "id": "26b2c3d4e5f60004",
+    "type": "function",
+    "z": "26b2c3d4e5f60001",
+    "name": "write the forward",
+    "func": "const event = msg.payload;\nconst data = event.data || {};\nconst sender = data.from || {};\nif ((data.to && data.to.group_id) || !sender.number) {\n    return null;\n}\nconst who = (sender.name ? sender.name + ' ' : '') + '(+' + sender.number + ')';\nmsg.to = 'grp_0198d3c5a1b24d3e9f01a2b3c4d5e6f7'; // replace with the id of your team group\nmsg.number = event.number_alias || 'main';\nmsg.payload = 'New message from ' + who + ': ' + (data.preview || '[' + data.content_type + ']');\nreturn msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 420,
+    "y": 140,
+    "wires": [
+      [
+        "26b2c3d4e5f60005"
+      ]
+    ]
+  },
+  {
+    "id": "26b2c3d4e5f60005",
+    "type": "turbo-notify-send",
+    "z": "26b2c3d4e5f60001",
+    "name": "send to the group",
+    "server": "tn0cfg0000000001",
+    "to": "",
+    "number": "main",
+    "x": 700,
+    "y": 140,
+    "wires": [
+      [
+        "26b2c3d4e5f60006"
+      ]
+    ]
+  },
+  {
+    "id": "26b2c3d4e5f60006",
+    "type": "debug",
+    "z": "26b2c3d4e5f60001",
+    "name": "accepted",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 920,
+    "y": 140,
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "tn0cfg0000000001",
+    "type": "turbo-notify-config",
+    "name": "My Turbo Notify account",
+    "baseUrl": "https://api.turbonotify.com"
+  }
+]

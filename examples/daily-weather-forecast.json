@@ -1,0 +1,129 @@
+[
+  {
+    "id": "29b2c3d4e5f60001",
+    "type": "tab",
+    "label": "Daily weather forecast",
+    "disabled": false,
+    "info": "Sends today's forecast on WhatsApp every morning at 07:00. No key needed for the forecast service."
+  },
+  {
+    "id": "29b2c3d4e5f60002",
+    "type": "comment",
+    "z": "29b2c3d4e5f60001",
+    "name": "Setup",
+    "info": "Before you run this flow: open the Turbo Notify account node, paste an API key and press Test. Your Turbo Notify account needs a WhatsApp number linked to it. The key needs the messages:send scope. Replace +12025550123 with the number that should receive the message. The forecast comes from the free Open-Meteo service. Change latitude and longitude in the address of the http request node to your city. Press the inject button to test now.",
+    "x": 200,
+    "y": 40,
+    "wires": []
+  },
+  {
+    "id": "29b2c3d4e5f60003",
+    "type": "inject",
+    "z": "29b2c3d4e5f60001",
+    "name": "Every day at 07:00",
+    "props": [
+      {
+        "p": "payload"
+      }
+    ],
+    "repeat": "",
+    "crontab": "00 07 * * *",
+    "once": false,
+    "onceDelay": 0.1,
+    "topic": "",
+    "payload": "",
+    "payloadType": "date",
+    "x": 180,
+    "y": 140,
+    "wires": [
+      [
+        "29b2c3d4e5f60004"
+      ]
+    ]
+  },
+  {
+    "id": "29b2c3d4e5f60004",
+    "type": "http request",
+    "z": "29b2c3d4e5f60001",
+    "name": "get the forecast",
+    "method": "GET",
+    "ret": "obj",
+    "paytoqs": "ignore",
+    "url": "https://api.open-meteo.com/v1/forecast?latitude=51.51&longitude=-0.13&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=auto&forecast_days=1",
+    "tls": "",
+    "persist": false,
+    "proxy": "",
+    "insecureHTTPParser": false,
+    "authType": "",
+    "senderr": false,
+    "headers": [],
+    "x": 400,
+    "y": 140,
+    "wires": [
+      [
+        "29b2c3d4e5f60005"
+      ]
+    ]
+  },
+  {
+    "id": "29b2c3d4e5f60005",
+    "type": "function",
+    "z": "29b2c3d4e5f60001",
+    "name": "write the forecast",
+    "func": "const daily = (msg.payload && msg.payload.daily) || {};\nif (!daily.temperature_2m_max || !daily.temperature_2m_min) {\n    node.error('The forecast service did not answer with a forecast', msg);\n    return null;\n}\nconst rain = daily.precipitation_probability_max ? daily.precipitation_probability_max[0] : null;\nmsg.payload = 'Today: ' + Math.round(daily.temperature_2m_min[0]) + ' to ' + Math.round(daily.temperature_2m_max[0]) + ' C'\n    + (rain === null ? '.' : ', chance of rain ' + rain + '%.');\nreturn msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 640,
+    "y": 140,
+    "wires": [
+      [
+        "29b2c3d4e5f60006"
+      ]
+    ]
+  },
+  {
+    "id": "29b2c3d4e5f60006",
+    "type": "turbo-notify-send",
+    "z": "29b2c3d4e5f60001",
+    "name": "send on WhatsApp",
+    "server": "tn0cfg0000000001",
+    "to": "+12025550123",
+    "number": "main",
+    "x": 900,
+    "y": 140,
+    "wires": [
+      [
+        "29b2c3d4e5f60007"
+      ]
+    ]
+  },
+  {
+    "id": "29b2c3d4e5f60007",
+    "type": "debug",
+    "z": "29b2c3d4e5f60001",
+    "name": "accepted",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 1120,
+    "y": 140,
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "tn0cfg0000000001",
+    "type": "turbo-notify-config",
+    "name": "My Turbo Notify account",
+    "baseUrl": "https://api.turbonotify.com"
+  }
+]

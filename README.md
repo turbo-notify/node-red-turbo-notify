@@ -1,6 +1,6 @@
-# Turbo Notify for Node-RED
+# WhatsApp for Node-RED, with Turbo Notify
 
-Send WhatsApp messages from your own number, and start a flow when a message arrives, with [Turbo Notify](https://turbonotify.com).
+Send WhatsApp messages from your own number, and start a flow when a message arrives, with [Turbo Notify](https://turbonotify.com). Text, pictures, documents, locations and replies, plus eighteen example flows you can import and run: alerts, an order confirmation, a menu bot, an after-hours reply, a website monitor and more.
 
 **From your own number.** Messages leave from the WhatsApp number you link to your Turbo Notify account, not from a shared bot or a demo account.
 
@@ -19,15 +19,17 @@ Send WhatsApp messages from your own number, and start a flow when a message arr
 
 ## Install
 
-In Node-RED, open the menu, choose **Manage palette**, then **Install**, and search for `@turbo-notify/node-red-turbo-notify`.
+In Node-RED, open the menu, choose **Manage palette**, then **Install**, and search for `@turbo-notify/node-red-whatsapp` (or just `whatsapp`).
 
 Or from the command line, in your Node-RED user directory (usually `~/.node-red`):
 
 ```
-npm install @turbo-notify/node-red-turbo-notify
+npm install @turbo-notify/node-red-whatsapp
 ```
 
 Restart Node-RED. The nodes appear in the **Turbo Notify** category of the palette.
+
+**Coming from `@turbo-notify/node-red-turbo-notify`?** That package (0.1.x) is replaced by this one. The node types did not change, so your flows keep working: uninstall the old package, install this one and restart.
 
 ## First message in two minutes
 
@@ -83,16 +85,30 @@ When the API refuses a call, the node shows the API error code in its status (a 
 
 ## Examples
 
-Import them from the menu: **Import**, then **Examples**, then **@turbo-notify/node-red-turbo-notify**.
+Import them from the menu: **Import**, then **Examples**, then **@turbo-notify/node-red-whatsapp**. Each flow has a **Setup** comment that says what to change (the key, the scopes, the number).
 
-| Example | What it shows |
+| Example | What it does |
 |---|---|
 | `door-sensor-to-whatsapp` | An alert text when a sensor reports an event, then a check of its delivery status. |
-| `reply-to-an-incoming-message` | Answers every private message that arrives, using the events node. |
-| `daily-report-to-a-list` | A report sent every morning to several people, one message every 10 seconds. |
 | `camera-picture-to-whatsapp` | A picture from a camera snapshot address, with a caption. |
+| `daily-report-to-a-list` | A report sent every morning to several people, one message every 10 seconds. |
+| `scheduled-reminder` | A reminder on weekdays at 09:00. |
+| `temperature-alert` | One message when a temperature goes above a limit and one when it is back to normal, never a flood. |
+| `website-down-alert` | Checks an address every 5 minutes: one message when it goes down, one when it recovers. |
+| `node-red-error-alert` | A message when a node on the tab fails, at most one every 10 seconds. |
+| `daily-weather-forecast` | Today's forecast every morning from the free Open-Meteo service (no key). |
+| `send-a-pdf` | Sends a document, such as an invoice, with a caption. |
+| `confirm-delivery-or-alert` | Sends a message, checks its status 30 seconds later and warns you if it failed. |
+| `http-endpoint-to-whatsapp` | `POST /whatsapp/alert` sends a message: any system that can make an HTTP call can use your number. Protected by a token. |
+| `order-confirmation` | `POST /whatsapp/orders` confirms an order to the customer with a written summary. |
+| `reply-to-an-incoming-message` | Answers every private message that arrives, using the events node. |
+| `menu-by-keyword` | Answers 1, 2 or 3 (or the words hours, address, person) with the right text, and the menu for anything else. |
+| `after-hours-auto-reply` | Tells people you are closed outside your opening hours, once every 12 hours per person. |
+| `incoming-to-team-group` | Forwards every private message to a WhatsApp group of your team. |
+| `share-the-store-location` | Sends a map location when someone asks where you are. |
+| `log-incoming-to-csv` | Keeps a CSV record of every message you receive. |
 
-Every example uses the placeholder number `+12025550123`: replace it before you deploy.
+Every example uses the placeholder number `+12025550123`: replace it before you deploy. The flows that read messages use the events node, which checks every 30 seconds.
 
 ## Limits worth knowing
 

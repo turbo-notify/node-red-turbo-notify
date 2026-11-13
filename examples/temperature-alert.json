@@ -1,0 +1,130 @@
+[
+  {
+    "id": "28b2c3d4e5f60001",
+    "type": "tab",
+    "label": "Temperature alert",
+    "disabled": false,
+    "info": "Tells you on WhatsApp when a temperature goes above a limit and when it is back to normal."
+  },
+  {
+    "id": "28b2c3d4e5f60002",
+    "type": "comment",
+    "z": "28b2c3d4e5f60001",
+    "name": "Setup",
+    "info": "Before you run this flow: open the Turbo Notify account node, paste an API key and press Test. Your Turbo Notify account needs a WhatsApp number linked to it. The key needs the messages:send scope. Replace +12025550123 with the number that should receive the message. Replace the two inject nodes with your sensor (MQTT, Zigbee, Modbus or any node that emits the temperature in msg.payload). Open the function node to set the limit (30) and the value that counts as back to normal (28). The gap stops a reading that bounces around the limit from sending many messages.",
+    "x": 200,
+    "y": 40,
+    "wires": []
+  },
+  {
+    "id": "28b2c3d4e5f60003",
+    "type": "inject",
+    "z": "28b2c3d4e5f60001",
+    "name": "Reading 31.5 (replace with your sensor)",
+    "props": [
+      {
+        "p": "payload"
+      }
+    ],
+    "repeat": "",
+    "crontab": "",
+    "once": false,
+    "onceDelay": 0.1,
+    "topic": "",
+    "payload": "31.5",
+    "payloadType": "num",
+    "x": 220,
+    "y": 100,
+    "wires": [
+      [
+        "28b2c3d4e5f60005"
+      ]
+    ]
+  },
+  {
+    "id": "28b2c3d4e5f60004",
+    "type": "inject",
+    "z": "28b2c3d4e5f60001",
+    "name": "Reading 27 (replace with your sensor)",
+    "props": [
+      {
+        "p": "payload"
+      }
+    ],
+    "repeat": "",
+    "crontab": "",
+    "once": false,
+    "onceDelay": 0.1,
+    "topic": "",
+    "payload": "27",
+    "payloadType": "num",
+    "x": 220,
+    "y": 180,
+    "wires": [
+      [
+        "28b2c3d4e5f60005"
+      ]
+    ]
+  },
+  {
+    "id": "28b2c3d4e5f60005",
+    "type": "function",
+    "z": "28b2c3d4e5f60001",
+    "name": "above the limit or back to normal?",
+    "func": "const HIGH = 30; // alert at or above this\nconst BACK = 28; // back to normal at or below this\nconst temperature = Number(msg.payload);\nif (!Number.isFinite(temperature)) {\n    return null;\n}\nconst hot = flow.get('hot') === true;\nif (temperature >= HIGH && !hot) {\n    flow.set('hot', true);\n    msg.payload = 'Temperature is ' + temperature + ' C, above the limit of ' + HIGH + ' C.';\n    return msg;\n}\nif (temperature <= BACK && hot) {\n    flow.set('hot', false);\n    msg.payload = 'Temperature is back to normal: ' + temperature + ' C.';\n    return msg;\n}\nreturn null;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 520,
+    "y": 140,
+    "wires": [
+      [
+        "28b2c3d4e5f60006"
+      ]
+    ]
+  },
+  {
+    "id": "28b2c3d4e5f60006",
+    "type": "turbo-notify-send",
+    "z": "28b2c3d4e5f60001",
+    "name": "send on WhatsApp",
+    "server": "tn0cfg0000000001",
+    "to": "+12025550123",
+    "number": "main",
+    "x": 800,
+    "y": 140,
+    "wires": [
+      [
+        "28b2c3d4e5f60007"
+      ]
+    ]
+  },
+  {
+    "id": "28b2c3d4e5f60007",
+    "type": "debug",
+    "z": "28b2c3d4e5f60001",
+    "name": "accepted",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 1020,
+    "y": 140,
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "tn0cfg0000000001",
+    "type": "turbo-notify-config",
+    "name": "My Turbo Notify account",
+    "baseUrl": "https://api.turbonotify.com"
+  }
+]

@@ -1,0 +1,231 @@
+[
+  {
+    "id": "24b2c3d4e5f60001",
+    "type": "tab",
+    "label": "Menu by keyword",
+    "disabled": false,
+    "info": "Answers 1, 2 or 3 (or the words hours, address, person) with the right text. Anything else gets the menu."
+  },
+  {
+    "id": "24b2c3d4e5f60002",
+    "type": "comment",
+    "z": "24b2c3d4e5f60001",
+    "name": "Setup",
+    "info": "Before you run this flow: open the Turbo Notify account node, paste an API key and press Test. Your Turbo Notify account needs a WhatsApp number linked to it. The key needs the events:read scope (and messages:send to answer). The events node checks every 30 seconds. Edit the change nodes to write your own answers. Group messages are skipped. The event carries the start of the text (preview), which is enough for short keywords.",
+    "x": 200,
+    "y": 40,
+    "wires": []
+  },
+  {
+    "id": "24b2c3d4e5f60003",
+    "type": "turbo-notify-events",
+    "z": "24b2c3d4e5f60001",
+    "name": "incoming messages",
+    "server": "tn0cfg0000000001",
+    "types": "message.received",
+    "number": "",
+    "interval": 30,
+    "x": 180,
+    "y": 140,
+    "wires": [
+      [
+        "24b2c3d4e5f60004"
+      ]
+    ]
+  },
+  {
+    "id": "24b2c3d4e5f60004",
+    "type": "function",
+    "z": "24b2c3d4e5f60001",
+    "name": "read the choice",
+    "func": "// Turn the incoming text into a menu choice. Groups and non-text messages are skipped.\nconst event = msg.payload;\nconst data = event.data || {};\nconst sender = data.from || {};\nif ((data.to && data.to.group_id) || !sender.number || data.content_type !== 'text') {\n    return null;\n}\nconst text = String(data.preview || '').trim().toLowerCase();\nlet choice = '';\nif (text === '1' || text.includes('hours')) choice = '1';\nelse if (text === '2' || text.includes('address')) choice = '2';\nelse if (text === '3' || text.includes('person')) choice = '3';\nmsg.to = '+' + sender.number;\nmsg.number = event.number_alias || 'main';\nmsg.choice = choice;\nreturn msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 400,
+    "y": 140,
+    "wires": [
+      [
+        "24b2c3d4e5f60005"
+      ]
+    ]
+  },
+  {
+    "id": "24b2c3d4e5f60005",
+    "type": "switch",
+    "z": "24b2c3d4e5f60001",
+    "name": "which choice",
+    "property": "choice",
+    "propertyType": "msg",
+    "rules": [
+      {
+        "t": "eq",
+        "v": "1",
+        "vt": "str"
+      },
+      {
+        "t": "eq",
+        "v": "2",
+        "vt": "str"
+      },
+      {
+        "t": "eq",
+        "v": "3",
+        "vt": "str"
+      },
+      {
+        "t": "else"
+      }
+    ],
+    "checkall": "false",
+    "repair": false,
+    "outputs": 4,
+    "x": 620,
+    "y": 140,
+    "wires": [
+      [
+        "24b2c3d4e5f60007"
+      ],
+      [
+        "24b2c3d4e5f60008"
+      ],
+      [
+        "24b2c3d4e5f60009"
+      ],
+      [
+        "24b2c3d4e5f6000a"
+      ]
+    ]
+  },
+  {
+    "id": "24b2c3d4e5f60006",
+    "type": "turbo-notify-send",
+    "z": "24b2c3d4e5f60001",
+    "name": "answer on WhatsApp",
+    "server": "tn0cfg0000000001",
+    "to": "",
+    "number": "main",
+    "x": 1100,
+    "y": 220,
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "24b2c3d4e5f60007",
+    "type": "change",
+    "z": "24b2c3d4e5f60001",
+    "name": "opening hours",
+    "rules": [
+      {
+        "t": "set",
+        "p": "payload",
+        "pt": "msg",
+        "to": "We are open Monday to Friday, from 9:00 to 18:00.",
+        "tot": "str"
+      }
+    ],
+    "action": "",
+    "property": "",
+    "from": "",
+    "to": "",
+    "reg": false,
+    "x": 860,
+    "y": 80,
+    "wires": [
+      [
+        "24b2c3d4e5f60006"
+      ]
+    ]
+  },
+  {
+    "id": "24b2c3d4e5f60008",
+    "type": "change",
+    "z": "24b2c3d4e5f60001",
+    "name": "address",
+    "rules": [
+      {
+        "t": "set",
+        "p": "payload",
+        "pt": "msg",
+        "to": "You find us at 10 Example Street. Send 2 any time to see this again.",
+        "tot": "str"
+      }
+    ],
+    "action": "",
+    "property": "",
+    "from": "",
+    "to": "",
+    "reg": false,
+    "x": 860,
+    "y": 150,
+    "wires": [
+      [
+        "24b2c3d4e5f60006"
+      ]
+    ]
+  },
+  {
+    "id": "24b2c3d4e5f60009",
+    "type": "change",
+    "z": "24b2c3d4e5f60001",
+    "name": "talk to a person",
+    "rules": [
+      {
+        "t": "set",
+        "p": "payload",
+        "pt": "msg",
+        "to": "Done. A person from the team will write to you here soon.",
+        "tot": "str"
+      }
+    ],
+    "action": "",
+    "property": "",
+    "from": "",
+    "to": "",
+    "reg": false,
+    "x": 860,
+    "y": 220,
+    "wires": [
+      [
+        "24b2c3d4e5f60006"
+      ]
+    ]
+  },
+  {
+    "id": "24b2c3d4e5f6000a",
+    "type": "change",
+    "z": "24b2c3d4e5f60001",
+    "name": "menu",
+    "rules": [
+      {
+        "t": "set",
+        "p": "payload",
+        "pt": "msg",
+        "to": "Hi! Reply 1 for opening hours, 2 for our address or 3 to talk to a person.",
+        "tot": "str"
+      }
+    ],
+    "action": "",
+    "property": "",
+    "from": "",
+    "to": "",
+    "reg": false,
+    "x": 860,
+    "y": 290,
+    "wires": [
+      [
+        "24b2c3d4e5f60006"
+      ]
+    ]
+  },
+  {
+    "id": "tn0cfg0000000001",
+    "type": "turbo-notify-config",
+    "name": "My Turbo Notify account",
+    "baseUrl": "https://api.turbonotify.com"
+  }
+]

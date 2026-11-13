@@ -1,0 +1,146 @@
+[
+  {
+    "id": "27b2c3d4e5f60001",
+    "type": "tab",
+    "label": "Website down alert",
+    "disabled": false,
+    "info": "Checks a web address every 5 minutes and tells you on WhatsApp when it goes down and when it comes back."
+  },
+  {
+    "id": "27b2c3d4e5f60002",
+    "type": "comment",
+    "z": "27b2c3d4e5f60001",
+    "name": "Setup",
+    "info": "Before you run this flow: open the Turbo Notify account node, paste an API key and press Test. Your Turbo Notify account needs a WhatsApp number linked to it. The key needs the messages:send scope. Replace +12025550123 with the number that should receive the message. Replace the address in the http request node with yours (a health page is best). You get one message when it fails and one when it recovers, not one every 5 minutes. A failure is an error or a status of 400 or more.",
+    "x": 200,
+    "y": 40,
+    "wires": []
+  },
+  {
+    "id": "27b2c3d4e5f60003",
+    "type": "inject",
+    "z": "27b2c3d4e5f60001",
+    "name": "Every 5 minutes",
+    "props": [
+      {
+        "p": "payload"
+      }
+    ],
+    "repeat": "300",
+    "crontab": "",
+    "once": true,
+    "onceDelay": 0.1,
+    "topic": "",
+    "payload": "",
+    "payloadType": "date",
+    "x": 180,
+    "y": 140,
+    "wires": [
+      [
+        "27b2c3d4e5f60004"
+      ]
+    ]
+  },
+  {
+    "id": "27b2c3d4e5f60004",
+    "type": "http request",
+    "z": "27b2c3d4e5f60001",
+    "name": "check the site",
+    "method": "GET",
+    "ret": "obj",
+    "paytoqs": "ignore",
+    "url": "https://your-site.example/health",
+    "tls": "",
+    "persist": false,
+    "proxy": "",
+    "insecureHTTPParser": false,
+    "authType": "",
+    "senderr": false,
+    "headers": [],
+    "x": 400,
+    "y": 140,
+    "wires": [
+      [
+        "27b2c3d4e5f60006"
+      ]
+    ]
+  },
+  {
+    "id": "27b2c3d4e5f60005",
+    "type": "catch",
+    "z": "27b2c3d4e5f60001",
+    "name": "could not connect",
+    "scope": [
+      "27b2c3d4e5f60004"
+    ],
+    "uncaught": false,
+    "x": 400,
+    "y": 240,
+    "wires": [
+      [
+        "27b2c3d4e5f60006"
+      ]
+    ]
+  },
+  {
+    "id": "27b2c3d4e5f60006",
+    "type": "function",
+    "z": "27b2c3d4e5f60001",
+    "name": "went down or came back?",
+    "func": "// Say something only when the state changes.\nconst SITE = 'your-site.example';\nconst failed = msg.error !== undefined || !msg.statusCode || msg.statusCode >= 400;\nconst down = flow.get('down') === true;\nif (failed && !down) {\n    flow.set('down', true);\n    flow.set('downSince', Date.now());\n    msg.payload = SITE + ' is DOWN (' + (msg.error ? msg.error.message : 'HTTP ' + msg.statusCode) + ').';\n    return msg;\n}\nif (!failed && down) {\n    const minutes = Math.round((Date.now() - flow.get('downSince')) / 60000);\n    flow.set('down', false);\n    msg.payload = SITE + ' is back after ' + minutes + ' minutes.';\n    return msg;\n}\nreturn null;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 640,
+    "y": 160,
+    "wires": [
+      [
+        "27b2c3d4e5f60007"
+      ]
+    ]
+  },
+  {
+    "id": "27b2c3d4e5f60007",
+    "type": "turbo-notify-send",
+    "z": "27b2c3d4e5f60001",
+    "name": "send on WhatsApp",
+    "server": "tn0cfg0000000001",
+    "to": "+12025550123",
+    "number": "main",
+    "x": 900,
+    "y": 160,
+    "wires": [
+      [
+        "27b2c3d4e5f60008"
+      ]
+    ]
+  },
+  {
+    "id": "27b2c3d4e5f60008",
+    "type": "debug",
+    "z": "27b2c3d4e5f60001",
+    "name": "accepted",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 1120,
+    "y": 160,
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "tn0cfg0000000001",
+    "type": "turbo-notify-config",
+    "name": "My Turbo Notify account",
+    "baseUrl": "https://api.turbonotify.com"
+  }
+]

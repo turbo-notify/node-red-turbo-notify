@@ -1,0 +1,97 @@
+[
+  {
+    "id": "2bb2c3d4e5f60001",
+    "type": "tab",
+    "label": "Share the store location",
+    "disabled": false,
+    "info": "Sends a map location when someone asks where you are (where, address, location)."
+  },
+  {
+    "id": "2bb2c3d4e5f60002",
+    "type": "comment",
+    "z": "2bb2c3d4e5f60001",
+    "name": "Setup",
+    "info": "Before you run this flow: open the Turbo Notify account node, paste an API key and press Test. Your Turbo Notify account needs a WhatsApp number linked to it. The key needs the events:read scope (and messages:send to answer). Open the function node to set the name, address and coordinates of your place. Group messages are skipped.",
+    "x": 200,
+    "y": 40,
+    "wires": []
+  },
+  {
+    "id": "2bb2c3d4e5f60003",
+    "type": "turbo-notify-events",
+    "z": "2bb2c3d4e5f60001",
+    "name": "incoming messages",
+    "server": "tn0cfg0000000001",
+    "types": "message.received",
+    "number": "",
+    "interval": 30,
+    "x": 180,
+    "y": 140,
+    "wires": [
+      [
+        "2bb2c3d4e5f60004"
+      ]
+    ]
+  },
+  {
+    "id": "2bb2c3d4e5f60004",
+    "type": "function",
+    "z": "2bb2c3d4e5f60001",
+    "name": "asked where we are?",
+    "func": "const event = msg.payload;\nconst data = event.data || {};\nconst sender = data.from || {};\nif ((data.to && data.to.group_id) || !sender.number || data.content_type !== 'text') {\n    return null;\n}\nconst text = String(data.preview || '').toLowerCase();\nif (!/\\b(where|address|location)\\b/.test(text)) {\n    return null;\n}\nmsg.to = '+' + sender.number;\nmsg.number = event.number_alias || 'main';\nmsg.payload = '';\nmsg.location = {\n    latitude: 51.5007,\n    longitude: -0.1246,\n    name: 'Our store',\n    address: '10 Example Street, London',\n};\nreturn msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 420,
+    "y": 140,
+    "wires": [
+      [
+        "2bb2c3d4e5f60005"
+      ]
+    ]
+  },
+  {
+    "id": "2bb2c3d4e5f60005",
+    "type": "turbo-notify-send",
+    "z": "2bb2c3d4e5f60001",
+    "name": "send the location",
+    "server": "tn0cfg0000000001",
+    "to": "",
+    "number": "main",
+    "x": 700,
+    "y": 140,
+    "wires": [
+      [
+        "2bb2c3d4e5f60006"
+      ]
+    ]
+  },
+  {
+    "id": "2bb2c3d4e5f60006",
+    "type": "debug",
+    "z": "2bb2c3d4e5f60001",
+    "name": "accepted",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 920,
+    "y": 140,
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "tn0cfg0000000001",
+    "type": "turbo-notify-config",
+    "name": "My Turbo Notify account",
+    "baseUrl": "https://api.turbonotify.com"
+  }
+]

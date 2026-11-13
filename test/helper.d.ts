@@ -6,16 +6,23 @@ declare module 'node-red-node-test-helper' {
     receive(msg: Record<string, unknown>): void;
     emit(event: string, ...args: unknown[]): void;
     status: { lastCall?: { args: unknown[] } };
-    context(): { get(key: string, callback: (err: unknown, value: unknown) => void): void };
+    context(): {
+      get(key: string, callback: (err: unknown, value: unknown) => void): void;
+      flow: { get(key: string): unknown; set(key: string, value: unknown): void };
+    };
   }
   interface HttpAnswer {
     status: number;
-    body: unknown;
+    body: any; // eslint-disable-line @typescript-eslint/no-explicit-any
     text: string;
+  }
+  interface HttpPost extends PromiseLike<HttpAnswer> {
+    set(name: string, value: string): HttpPost;
+    send(body: unknown): HttpPost;
   }
   interface HttpRequest {
     get(path: string): Promise<HttpAnswer>;
-    post(path: string): { send(body: unknown): Promise<HttpAnswer> };
+    post(path: string): HttpPost;
   }
   interface Helper {
     startServer(callback?: (err?: unknown) => void): Promise<void>;

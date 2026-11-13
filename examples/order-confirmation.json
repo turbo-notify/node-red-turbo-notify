@@ -1,0 +1,177 @@
+[
+  {
+    "id": "23b2c3d4e5f60001",
+    "type": "tab",
+    "label": "Order confirmation",
+    "disabled": false,
+    "info": "Confirms an order to the customer on WhatsApp: POST /whatsapp/orders from your shop.",
+    "env": [
+      {
+        "name": "ALERT_TOKEN",
+        "type": "str",
+        "value": "change-me"
+      }
+    ]
+  },
+  {
+    "id": "23b2c3d4e5f60002",
+    "type": "comment",
+    "z": "23b2c3d4e5f60001",
+    "name": "Setup",
+    "info": "Before you run this flow: open the Turbo Notify account node, paste an API key and press Test. Your Turbo Notify account needs a WhatsApp number linked to it. The key needs the messages:send scope. Your shop posts the order to http://localhost:1880/whatsapp/orders with the x-token header (the ALERT_TOKEN variable of this tab, change it): {\"id\":\"A-1001\",\"customer\":{\"name\":\"Ana\",\"phone\":\"+12025550123\"},\"items\":[{\"qty\":2,\"name\":\"Coffee beans\"}],\"total\":\"31.80\",\"currency\":\"USD\"}. Edit the template node to change the words. Only send to customers who gave you their number to hear about their order.",
+    "x": 200,
+    "y": 40,
+    "wires": []
+  },
+  {
+    "id": "23b2c3d4e5f60003",
+    "type": "http in",
+    "z": "23b2c3d4e5f60001",
+    "name": "POST /whatsapp/orders",
+    "url": "/whatsapp/orders",
+    "method": "post",
+    "upload": false,
+    "swaggerDoc": "",
+    "x": 180,
+    "y": 140,
+    "wires": [
+      [
+        "23b2c3d4e5f60004"
+      ]
+    ]
+  },
+  {
+    "id": "23b2c3d4e5f60004",
+    "type": "function",
+    "z": "23b2c3d4e5f60001",
+    "name": "check token and order",
+    "func": "const token = env.get('ALERT_TOKEN');\nif (token && msg.req.headers['x-token'] !== token) {\n    msg.statusCode = 401;\n    msg.payload = { error: 'unauthorized' };\n    return [null, msg];\n}\nconst order = msg.payload || {};\nconst customer = order.customer || {};\nif (!customer.phone || !Array.isArray(order.items) || order.items.length === 0) {\n    msg.statusCode = 400;\n    msg.payload = { error: 'an order needs customer.phone and at least one item' };\n    return [null, msg];\n}\nmsg.order = order;\nmsg.to = customer.phone;\nreturn [msg, null];",
+    "outputs": 2,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 420,
+    "y": 140,
+    "wires": [
+      [
+        "23b2c3d4e5f60005"
+      ],
+      [
+        "23b2c3d4e5f60008"
+      ]
+    ]
+  },
+  {
+    "id": "23b2c3d4e5f60005",
+    "type": "template",
+    "z": "23b2c3d4e5f60001",
+    "name": "write the confirmation",
+    "field": "payload",
+    "fieldType": "msg",
+    "format": "text",
+    "syntax": "mustache",
+    "template": "Hi {{{order.customer.name}}}, we received your order {{{order.id}}}:\n{{#order.items}}\n- {{{qty}}} x {{{name}}}\n{{/order.items}}\nTotal: {{{order.total}}} {{{order.currency}}}\nThank you!",
+    "output": "str",
+    "x": 660,
+    "y": 120,
+    "wires": [
+      [
+        "23b2c3d4e5f60006"
+      ]
+    ]
+  },
+  {
+    "id": "23b2c3d4e5f60006",
+    "type": "turbo-notify-send",
+    "z": "23b2c3d4e5f60001",
+    "name": "send on WhatsApp",
+    "server": "tn0cfg0000000001",
+    "to": "",
+    "number": "main",
+    "x": 900,
+    "y": 120,
+    "wires": [
+      [
+        "23b2c3d4e5f60007"
+      ]
+    ]
+  },
+  {
+    "id": "23b2c3d4e5f60007",
+    "type": "function",
+    "z": "23b2c3d4e5f60001",
+    "name": "answer 201",
+    "func": "msg.statusCode = 201;\nmsg.payload = { message_id: msg.messageId };\nreturn msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 1120,
+    "y": 120,
+    "wires": [
+      [
+        "23b2c3d4e5f60008"
+      ]
+    ]
+  },
+  {
+    "id": "23b2c3d4e5f60008",
+    "type": "http response",
+    "z": "23b2c3d4e5f60001",
+    "name": "answer",
+    "statusCode": "",
+    "headers": {},
+    "x": 1340,
+    "y": 160,
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "23b2c3d4e5f60009",
+    "type": "catch",
+    "z": "23b2c3d4e5f60001",
+    "name": "Turbo Notify refused",
+    "scope": [
+      "23b2c3d4e5f60006"
+    ],
+    "uncaught": false,
+    "x": 900,
+    "y": 240,
+    "wires": [
+      [
+        "23b2c3d4e5f6000a"
+      ]
+    ]
+  },
+  {
+    "id": "23b2c3d4e5f6000a",
+    "type": "function",
+    "z": "23b2c3d4e5f60001",
+    "name": "answer 502",
+    "func": "msg.statusCode = 502;\nmsg.payload = { error: msg.error.message };\nreturn msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 1120,
+    "y": 240,
+    "wires": [
+      [
+        "23b2c3d4e5f60008"
+      ]
+    ]
+  },
+  {
+    "id": "tn0cfg0000000001",
+    "type": "turbo-notify-config",
+    "name": "My Turbo Notify account",
+    "baseUrl": "https://api.turbonotify.com"
+  }
+]

@@ -1,0 +1,85 @@
+[
+  {
+    "id": "21b2c3d4e5f60001",
+    "type": "tab",
+    "label": "Scheduled reminder",
+    "disabled": false,
+    "info": "Sends a WhatsApp reminder on weekdays at 09:00."
+  },
+  {
+    "id": "21b2c3d4e5f60002",
+    "type": "comment",
+    "z": "21b2c3d4e5f60001",
+    "name": "Setup",
+    "info": "Before you run this flow: open the Turbo Notify account node, paste an API key and press Test. Your Turbo Notify account needs a WhatsApp number linked to it. The key needs the messages:send scope. Replace +12025550123 with the number that should receive the message. The inject node runs on weekdays at 09:00 (server time); press its button to test now.",
+    "x": 200,
+    "y": 40,
+    "wires": []
+  },
+  {
+    "id": "21b2c3d4e5f60003",
+    "type": "inject",
+    "z": "21b2c3d4e5f60001",
+    "name": "Weekdays at 09:00",
+    "props": [
+      {
+        "p": "payload"
+      }
+    ],
+    "repeat": "",
+    "crontab": "00 09 * * 1-5",
+    "once": false,
+    "onceDelay": 0.1,
+    "topic": "",
+    "payload": "Good morning. The team meeting starts at 09:30.",
+    "payloadType": "str",
+    "x": 200,
+    "y": 120,
+    "wires": [
+      [
+        "21b2c3d4e5f60004"
+      ]
+    ]
+  },
+  {
+    "id": "21b2c3d4e5f60004",
+    "type": "turbo-notify-send",
+    "z": "21b2c3d4e5f60001",
+    "name": "send on WhatsApp",
+    "server": "tn0cfg0000000001",
+    "to": "+12025550123",
+    "number": "main",
+    "x": 480,
+    "y": 120,
+    "wires": [
+      [
+        "21b2c3d4e5f60005"
+      ]
+    ]
+  },
+  {
+    "id": "21b2c3d4e5f60005",
+    "type": "debug",
+    "z": "21b2c3d4e5f60001",
+    "name": "accepted",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 720,
+    "y": 120,
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "tn0cfg0000000001",
+    "type": "turbo-notify-config",
+    "name": "My Turbo Notify account",
+    "baseUrl": "https://api.turbonotify.com"
+  }
+]

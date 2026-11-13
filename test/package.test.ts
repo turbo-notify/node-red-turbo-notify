@@ -21,7 +21,7 @@ describe('package contract (what the Flow Library and the scorecard read)', () =
     expect(pkg.dependencies).toBeUndefined();
     expect(pkg.peerDependencies).toBeUndefined();
     expect(pkg.optionalDependencies).toBeUndefined();
-    expect(pkg.name).toBe('@turbo-notify/node-red-turbo-notify');
+    expect(pkg.name).toBe('@turbo-notify/node-red-whatsapp');
     expect(pkg.license).toBe('MIT');
     expect(pkg.publishConfig).toMatchObject({ access: 'public', provenance: true });
     expect(pkg.engines.node).toBe('>=18');
@@ -33,6 +33,18 @@ describe('package contract (what the Flow Library and the scorecard read)', () =
 
   it('the version constant matches package.json', () => {
     expect(VERSION).toBe(pkg.version);
+  });
+
+  it('carries the one version every public Turbo Notify package carries, and the words people search for', () => {
+    expect(pkg.version).toBe('1.5.13');
+    // The name and description are what npm and the palette search read: keep the two search words in the name.
+    expect(pkg.name).toMatch(/node-red/);
+    expect(pkg.name).toMatch(/whatsapp/);
+    for (const keyword of ['node-red', 'whatsapp', 'whatsapp-api', 'whatsapp-bot', 'chatbot', 'auto-reply', 'turbo-notify']) {
+      expect(pkg.keywords).toContain(keyword);
+    }
+    expect(pkg.description).toMatch(/^WhatsApp nodes for Node-RED/);
+    expect(pkg.description.length).toBeLessThanOrEqual(200);
   });
 
   it('lists four nodes with the turbo-notify- prefix, each with a source and an editor file', () => {
@@ -65,16 +77,31 @@ describe('package contract (what the Flow Library and the scorecard read)', () =
     }
   });
 
-  it('has at least four importable example flows that hold no key and no real phone number', () => {
+  it('has eighteen importable example flows that hold no key and no real phone number', () => {
     const files = readdirSync(join(ROOT, 'examples')).filter((f) => f.endsWith('.json'));
     expect(files.sort()).toEqual([
+      'after-hours-auto-reply.json',
       'camera-picture-to-whatsapp.json',
+      'confirm-delivery-or-alert.json',
       'daily-report-to-a-list.json',
+      'daily-weather-forecast.json',
       'door-sensor-to-whatsapp.json',
+      'http-endpoint-to-whatsapp.json',
+      'incoming-to-team-group.json',
+      'log-incoming-to-csv.json',
+      'menu-by-keyword.json',
+      'node-red-error-alert.json',
+      'order-confirmation.json',
       'reply-to-an-incoming-message.json',
+      'scheduled-reminder.json',
+      'send-a-pdf.json',
+      'share-the-store-location.json',
+      'temperature-alert.json',
+      'website-down-alert.json',
     ]);
     const known = new Set([
-      'tab', 'comment', 'inject', 'change', 'function', 'delay', 'debug', 'catch',
+      'tab', 'comment', 'inject', 'change', 'function', 'delay', 'debug', 'catch', 'switch', 'template',
+      'http in', 'http response', 'http request', 'file',
       'turbo-notify-config', 'turbo-notify-send', 'turbo-notify-status', 'turbo-notify-events',
     ]);
     for (const file of files) {
@@ -83,11 +110,17 @@ describe('package contract (what the Flow Library and the scorecard read)', () =
       expect(Array.isArray(nodes)).toBe(true);
       const ids = nodes.map((n) => n.id);
       expect(new Set(ids).size).toBe(ids.length);
+      const tabs = nodes.filter((n) => n.type === 'tab');
+      expect(tabs).toHaveLength(1);
+      expect(String(tabs[0].info).length).toBeGreaterThan(20);
+      // Every example explains the setup (key, scope, number) in a comment node.
+      expect(nodes.some((n) => n.type === 'comment' && n.name === 'Setup' && /API key/.test(String(n.info)))).toBe(true);
       for (const node of nodes) {
         expect(known.has(String(node.type))).toBe(true);
         expect(node.credentials).toBeUndefined();
         expect(node.apiKey).toBeUndefined();
         for (const wire of ((node.wires ?? []) as string[][]).flat()) expect(ids).toContain(wire);
+        if (node.type !== 'tab' && node.type !== 'turbo-notify-config') expect(node.z).toBe(tabs[0].id);
       }
       const configs = nodes.filter((n) => n.type === 'turbo-notify-config');
       expect(configs).toHaveLength(1);
