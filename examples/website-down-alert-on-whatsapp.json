@@ -87,7 +87,7 @@
     "type": "function",
     "z": "27b2c3d4e5f60001",
     "name": "went down or came back?",
-    "func": "// Say something only when the state changes.\nconst SITE = 'your-site.example';\nconst failed = msg.error !== undefined || !msg.statusCode || msg.statusCode >= 400;\nconst down = flow.get('down') === true;\nif (failed && !down) {\n    flow.set('down', true);\n    flow.set('downSince', Date.now());\n    msg.payload = SITE + ' is DOWN (' + (msg.error ? msg.error.message : 'HTTP ' + msg.statusCode) + ').';\n    return msg;\n}\nif (!failed && down) {\n    const minutes = Math.round((Date.now() - flow.get('downSince')) / 60000);\n    flow.set('down', false);\n    msg.payload = SITE + ' is back after ' + minutes + ' minutes.';\n    return msg;\n}\nreturn null;",
+    "func": "// Say something only when the state changes.\nconst SITE = 'your-site.example';\nif (SITE === 'your-site.example') {\n    node.warn('Set SITE in this function node to the name of your site first.');\n    return null;\n}\nconst failed = msg.error !== undefined || !msg.statusCode || msg.statusCode >= 400;\nconst down = flow.get('down') === true;\nif (failed && !down) {\n    flow.set('down', true);\n    flow.set('downSince', Date.now());\n    msg.payload = SITE + ' is DOWN (' + (msg.error ? msg.error.message : 'HTTP ' + msg.statusCode) + ').';\n    return msg;\n}\nif (!failed && down) {\n    const minutes = Math.round((Date.now() - flow.get('downSince')) / 60000);\n    flow.set('down', false);\n    msg.payload = SITE + ' is back after ' + minutes + ' minutes.';\n    return msg;\n}\nreturn null;",
     "outputs": 1,
     "timeout": 0,
     "noerr": 0,

