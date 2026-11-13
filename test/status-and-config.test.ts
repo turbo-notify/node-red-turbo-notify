@@ -235,6 +235,30 @@ describe('Nodes without a usable config node', () => {
     expect(fake.calls).toHaveLength(1);
     expect(fake.calls[0].url).toBe('https://api.turbonotify.com/v1/numbers/main/messages');
     expect(JSON.stringify(fake.calls)).not.toContain('attacker.example');
+    // The person is told once, and the message names the way to change the address on purpose.
+    const warnings = helper
+      .log()
+      .args.map(([entry]) => entry)
+      .filter((entry) => entry.level === 30 && String(entry.msg).includes('attacker.example'));
+    expect(warnings).toHaveLength(1);
+    expect(String(warnings[0].msg)).toContain('turboNotifyBaseUrl');
+  });
+
+  it('an account node with no address, or with the default one, says nothing about addresses', async () => {
+    fake = mockFetch({ body: {} });
+    await helper.load(
+      ALL_NODES,
+      [
+        { id: 'cfg', type: 'turbo-notify-config' },
+        { id: 'cfg2', type: 'turbo-notify-config', baseUrl: 'https://api.turbonotify.com/' },
+      ],
+      {},
+    );
+    const mentions = helper
+      .log()
+      .args.map(([entry]) => entry)
+      .filter((entry) => String(entry.msg).includes('turboNotifyBaseUrl'));
+    expect(mentions).toHaveLength(0);
   });
 
   it('a settings.js address that is not a web address is refused, and the message names the setting', async () => {

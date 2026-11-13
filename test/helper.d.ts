@@ -36,6 +36,8 @@ declare module 'node-red-node-test-helper' {
     /** Merges runtime settings (what settings.js holds); call it before load. {} resets them. */
     settings(userSettings: Record<string, unknown>): void;
     getNode(id: string): TestNode;
+    /** Spy on the runtime log: every call carries `{ level, msg }`; level 30 is a warning. */
+    log(): { args: Array<[{ level: number; msg: unknown }]> };
     request(): HttpRequest;
     /** The runtime's node registry. getFlows() is what the admin API returns for GET /flows. */
     _redNodes: { getFlows(): { flows: unknown } };
