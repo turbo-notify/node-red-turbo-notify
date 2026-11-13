@@ -56,7 +56,7 @@ Takes `msg.messageId` (set by **whatsapp send**), and returns the status of the 
 
 ### whatsapp events
 
-Options: the event types to listen to (default `message.received`; empty means every event), the number (empty means all of them) and the interval in seconds (default 30, minimum 10).
+Options: the event types to listen to (default `message.received`; a message that quotes another one arrives as `message.replied`, so write `message.received,message.replied` to get both; empty means every event), the number (empty means all of them) and the interval in seconds (default 30, minimum 10).
 
 It emits one message per event, oldest first. `msg.payload` is the whole event (`id`, `type`, `number_alias`, `number_id`, `created_at`, `data`) and `msg.topic` is the event type.
 
@@ -65,7 +65,7 @@ It emits one message per event, oldest first. `msg.payload` is the whole event (
 When the API refuses a call, the node shows the API error code in its status (a red ring) and raises an error whose message is that code, for example `insufficient_scope`. A **Catch** node receives it:
 
 - `msg.error.message`: the error code.
-- `msg.error.cause.description`: what it means and what to do.
+- `msg.errorDescription` (and `msg.error.cause.description` on Node-RED 4 and later): what it means and what to do.
 - `msg.error.cause.status`, `msg.error.cause.requiredScope` (for `insufficient_scope`) and `msg.error.cause.retryAfter` (seconds, for a `429`) when the API gives them.
 
 ## Examples

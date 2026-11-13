@@ -587,6 +587,27 @@ describe('example flows run on the real nodes', () => {
       expect(body(run.calls[6]).to).toEqual({ number: '+12025550177' });
     });
 
+    it('a person who swipes to reply is answered, but a reply sent by the API is never answered (no loop)', async () => {
+      const run = await start('whatsapp-menu-by-keyword.json');
+      run.deliver({ ...incoming('2'), type: 'message.replied' });
+      await until(() => run.calls.length === 1, 'the answer to a quoted choice');
+      run.deliver({ ...incoming('2', { direction: 'outbound' }, '2026-06-08T10:01:00'), type: 'message.replied' });
+      await settle();
+      expect(run.calls).toHaveLength(1);
+      const events = run.flow.find((n) => n.type === 'turbo-notify-events');
+      expect(events).toBeUndefined();
+      expect(load('whatsapp-menu-by-keyword.json').find((n) => n.type === 'turbo-notify-events')?.types).toBe('message.received,message.replied');
+    });
+
+    it('the error alert never alerts about its own failure, so a dead key cannot make it retry forever', async () => {
+      const run = await start('node-red-error-alert-on-whatsapp.json', { reply: { status: 403, body: { error: 'insufficient_scope' } } });
+      run.fireInject();
+      await until(() => run.calls.length >= 1, 'the first attempt');
+      await settle();
+      await settle();
+      expect(run.calls).toHaveLength(1);
+    });
+
     it('a name with an at sign and digits is not echoed as a mention by the reply flow', async () => {
       const run = await start('reply-to-an-incoming-whatsapp-message.json');
       run.deliver(incoming('hi', { from: { name: '@5511977776661', number: '12025550142' } }));

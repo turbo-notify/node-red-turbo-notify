@@ -36,7 +36,7 @@
     "type": "function",
     "z": "2cb2c3d4e5f60001",
     "name": "write the alert",
-    "func": "const source = msg.error && msg.error.source ? (msg.error.source.name || msg.error.source.type) : 'a node';\nmsg.payload = 'Node-RED error in ' + source + ': ' + (msg.error ? msg.error.message : 'unknown error');\nreturn msg;",
+    "func": "// The alert must never alert about itself: if sending the alert fails, stop here instead of trying again forever.\nif (msg.error && msg.error.source && msg.error.source.id === '2cb2c3d4e5f60006') {\n    return null;\n}\nconst source = msg.error && msg.error.source ? (msg.error.source.name || msg.error.source.type) : 'a node';\nmsg.payload = 'Node-RED error in ' + source + ': ' + (msg.error ? msg.error.message : 'unknown error');\nreturn msg;",
     "outputs": 1,
     "timeout": 0,
     "noerr": 0,

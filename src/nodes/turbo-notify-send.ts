@@ -33,7 +33,7 @@ export = function register(RED: Red): void {
         send(msg);
         done();
       } catch (error) {
-        done(failNode(node, error));
+        done(failNode(node, error, msg));
       }
     });
   }

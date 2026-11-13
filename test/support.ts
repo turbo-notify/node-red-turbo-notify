@@ -71,14 +71,14 @@ export const credentials = { cfg: { apiKey: KEY } };
 export function runThrough(
   nodeId: string,
   msg: Record<string, unknown>,
-): Promise<{ out?: Record<string, unknown>; error?: Error }> {
+): Promise<{ out?: Record<string, unknown>; error?: Error; errorMsg?: Record<string, unknown> }> {
   return new Promise((resolve) => {
     const out = helper.getNode('out');
     out.on('input', (m) => resolve({ out: m as Record<string, unknown> }));
     const node = helper.getNode(nodeId);
     node.on('call:error', (call) => {
       const args = (call as { args: unknown[] }).args;
-      resolve({ error: args[0] as Error });
+      resolve({ error: args[0] as Error, errorMsg: args[1] as Record<string, unknown> | undefined });
     });
     node.receive(msg);
   });

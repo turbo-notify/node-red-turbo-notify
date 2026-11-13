@@ -82,7 +82,8 @@
   <dl class="message-properties">
     <dt class="optional">Event types <span class="property-type">string</span></dt>
     <dd>
-      Event types separated by commas, up to 20. The default is <code>message.received</code>. Leave it empty
+      Event types separated by commas, up to 20. The default is <code>message.received</code>. A message
+      that quotes another one arrives as <code>message.replied</code>: add it (<code>message.received,message.replied</code>) to get both. Leave it empty
       to receive every event.
     </dd>
     <dt class="optional">Number <span class="property-type">string</span></dt>

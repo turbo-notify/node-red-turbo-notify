@@ -215,6 +215,20 @@ describe('Send: errors from the API', () => {
     expect((error as ApiError).cause.description).toMatch(/Connect main number.*\/numbers/);
   });
 
+  it('puts the description on msg.errorDescription, which Node-RED 3 delivers too', async () => {
+    const { errorMsg } = await send(
+      { payload: 'x', to: '+12025550123' },
+      {},
+      { status: 403, body: { error: 'insufficient_scope', required_scope: 'messages:send' } },
+    );
+    expect(String(errorMsg?.errorDescription)).toContain("'messages:send'");
+  });
+
+  it('puts the reason of a local validation error on msg.errorDescription too', async () => {
+    const { errorMsg } = await send({ payload: 'x', to: 'nope' });
+    expect(String(errorMsg?.errorDescription)).toContain('msg.to');
+  });
+
   it('a 429 carries the Retry-After hint', async () => {
     const { error } = await send(
       { payload: 'x', to: '+12025550123' },

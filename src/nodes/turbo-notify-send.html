@@ -122,7 +122,7 @@
   <p>
     When the API refuses the call, the node reports an error whose message is the API error code (for example
     <code>insufficient_scope</code>). A Catch node receives it in <code>msg.error.message</code>, and the
-    description is in <code>msg.error.cause.description</code>. Other details, when the API gives them, are
+    description is in <code>msg.errorDescription</code> (also in <code>msg.error.cause.description</code> on Node-RED 4 and later). Other details, when the API gives them, are
     <code>msg.error.cause.requiredScope</code> and <code>msg.error.cause.retryAfter</code>.
   </p>
   <p>
