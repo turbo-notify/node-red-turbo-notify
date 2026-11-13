@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.5.16
+
+- No change to the nodes or the examples. This release is published by the npm Trusted Publisher of this package, with no token and with a provenance statement: from now on every release goes out the same way, built by the Publish workflow from this repository.
+
 ## 1.5.15
 
 A first-run review in a real Node-RED editor: can a person who just installed the nodes understand, alone, that they need a Turbo Notify account, a linked WhatsApp number and an API key? They could not, so:
