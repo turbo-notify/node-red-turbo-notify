@@ -99,7 +99,7 @@ Import them from the menu: **Import**, then **Examples**, then **@turbo-notify/n
 | `daily-weather-forecast` | Today's forecast every morning from the free Open-Meteo service (no key). |
 | `send-a-pdf` | Sends a document, such as an invoice, with a caption. |
 | `confirm-delivery-or-alert` | Sends a message, checks its status 30 seconds later and warns you if it failed. |
-| `http-endpoint-to-whatsapp` | `POST /whatsapp/alert` sends a message: any system that can make an HTTP call can use your number. Protected by a token. |
+| `http-endpoint-to-whatsapp` | `POST /whatsapp/alert` sends a message: any system that can make an HTTP call can use your number. It refuses every call (503) until you set a token of at least 16 characters in the tab variable `ALERT_TOKEN`. |
 | `order-confirmation` | `POST /whatsapp/orders` confirms an order to the customer with a written summary. |
 | `reply-to-an-incoming-message` | Answers every private message that arrives, using the events node. |
 | `menu-by-keyword` | Answers 1, 2 or 3 (or the words hours, address, person) with the right text, and the menu for anything else. |

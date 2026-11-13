@@ -30,6 +30,7 @@ const CFG = 'tn0cfg0000000001';
 const ID = 'msg_0198d3c5a1b24d3e9f01a2b3c4d5e6f7';
 const PHONE = '+12025550123';
 const GROUP = 'grp_0198d3c5a1b24d3e9f01a2b3c4d5e6f7';
+const TOKEN = 'a-long-random-token-0123456789';
 
 type FlowNode = Record<string, unknown> & { id: string; type: string; name?: string; wires?: string[][] };
 
@@ -40,6 +41,8 @@ interface Edges {
   httpStub?: string;
   /** The 30 second wait is replaced by a pass-through. */
   skipDelay?: boolean;
+  /** The value of the ALERT_TOKEN variable of the tab (the examples ship it empty). */
+  token?: string;
   /** API answers. A function gets the call. */
   reply?: FakeReply | ((call: Call) => FakeReply);
 }
@@ -70,6 +73,10 @@ const accepted = (call: Call): FakeReply =>
 
 async function start(file: string, edges: Edges = {}): Promise<Running> {
   const original = load(file);
+  if (edges.token !== undefined) {
+    const tab = original.find((n) => n.type === 'tab') as FlowNode & { env: Array<{ name: string; value: string }> };
+    tab.env.find((v) => v.name === 'ALERT_TOKEN')!.value = edges.token;
+  }
   const entryTargets: string[] = [];
   const flow: FlowNode[] = [];
   const captured: unknown[] = [];
@@ -174,9 +181,43 @@ describe('example flows run on the real nodes', () => {
     });
   });
 
+  describe.each([['http-endpoint-to-whatsapp.json'], ['order-confirmation.json']])('%s fails closed', (file) => {
+    const call = async (run: Running, token: string | undefined) => {
+      const before = run.responses.length;
+      run.deliver({ to: PHONE, message: 'x', id: 'A-1', customer: { phone: PHONE }, items: [{ qty: 1, name: 'x' }] }, {
+        req: { headers: token === undefined ? {} : { 'x-token': token } },
+      });
+      await until(() => run.responses.length === before + 1, 'an http answer');
+      return run.responses[before] as { status: number; body: Record<string, unknown> };
+    };
+
+    it('ships with no token and refuses every call with 503, whatever the caller sends', async () => {
+      const shipped = load(file).find((n) => n.type === 'tab') as unknown as { env: Array<{ name: string; value: string }> };
+      expect(shipped.env).toEqual([{ name: 'ALERT_TOKEN', type: 'str', value: '' }]);
+      expect(readFileSync(join(ROOT, 'examples', file), 'utf8')).not.toContain('change-me');
+      const run = await start(file);
+      for (const sent of [undefined, '', 'change-me', TOKEN]) expect((await call(run, sent)).status).toBe(503);
+      expect(run.calls).toHaveLength(0);
+    });
+
+    it('also refuses a token shorter than 16 characters, even when the caller sends the same one', async () => {
+      const run = await start(file, { token: 'short-token' });
+      expect((await call(run, 'short-token')).status).toBe(503);
+      expect(run.calls).toHaveLength(0);
+    });
+
+    it('answers 401 for a missing, wrong, longer, shorter or prefix-only token and sends nothing', async () => {
+      const run = await start(file, { token: TOKEN });
+      for (const sent of [undefined, '', 'wrong', `${TOKEN}x`, TOKEN.slice(0, -1), TOKEN.slice(0, 16)]) {
+        expect((await call(run, sent)).status).toBe(401);
+      }
+      expect(run.calls).toHaveLength(0);
+    });
+  });
+
   describe('http-endpoint-to-whatsapp', () => {
     /** Sends one request through the flow and waits for its answer. */
-    const post = async (run: Running, payload: unknown, token: string | undefined = 'change-me') => {
+    const post = async (run: Running, payload: unknown, token: string | undefined = TOKEN) => {
       const before = run.responses.length;
       run.deliver(payload, { req: { headers: token ? { 'x-token': token } : {} } });
       await until(() => run.responses.length === before + 1, 'an http answer');
@@ -184,7 +225,7 @@ describe('example flows run on the real nodes', () => {
     };
 
     it('answers 202 with the message id and sends the text', async () => {
-      const run = await start('http-endpoint-to-whatsapp.json');
+      const run = await start('http-endpoint-to-whatsapp.json', { token: TOKEN });
       const res = await post(run, { to: PHONE, message: 'Backup finished' });
       expect(res.status).toBe(202);
       expect(res.body).toEqual({ message_id: ID, status: 'pending' });
@@ -192,10 +233,8 @@ describe('example flows run on the real nodes', () => {
       expect(body(run.calls[0])).toEqual({ to: { number: PHONE }, content: { text: 'Backup finished' } });
     });
 
-    it('answers 401 without the token and 400 for a bad body, and sends nothing', async () => {
-      const run = await start('http-endpoint-to-whatsapp.json');
-      expect((await post(run, { to: PHONE, message: 'x' }, '')).status).toBe(401);
-      expect((await post(run, { to: PHONE, message: 'x' }, 'wrong')).status).toBe(401);
+    it('answers 400 for a bad body and sends nothing', async () => {
+      const run = await start('http-endpoint-to-whatsapp.json', { token: TOKEN });
       const bad = await post(run, { message: 'no recipient' });
       expect(bad.status).toBe(400);
       expect(String(bad.body.error)).toContain('"to"');
@@ -204,6 +243,7 @@ describe('example flows run on the real nodes', () => {
 
     it('answers 502 with the API error code when Turbo Notify refuses the message', async () => {
       const run = await start('http-endpoint-to-whatsapp.json', {
+        token: TOKEN,
         reply: { status: 403, body: { error: 'insufficient_scope' } },
       });
       const res = await post(run, { to: PHONE, message: 'x' });
@@ -213,7 +253,7 @@ describe('example flows run on the real nodes', () => {
   });
 
   it('order-confirmation: writes the confirmation from the order and answers 201', async () => {
-    const run = await start('order-confirmation.json');
+    const run = await start('order-confirmation.json', { token: TOKEN });
     const order = {
       id: 'A-1001',
       customer: { name: "Ana O'Neil", phone: PHONE },
@@ -221,14 +261,14 @@ describe('example flows run on the real nodes', () => {
       total: '31.80',
       currency: 'USD',
     };
-    run.deliver(order, { req: { headers: { 'x-token': 'change-me' } } });
+    run.deliver(order, { req: { headers: { 'x-token': TOKEN } } });
     await until(() => run.responses.length === 1, 'the answer');
     expect(run.responses[0]).toEqual({ status: 201, body: { message_id: ID } });
     expect(body(run.calls[0]).to).toEqual({ number: PHONE });
     expect(textOf(run.calls[0])).toBe(
       "Hi Ana O'Neil, we received your order A-1001:\n- 2 x Coffee beans\n- 1 x Filter & paper\nTotal: 31.80 USD\nThank you!",
     );
-    run.deliver({ id: 'x' }, { req: { headers: { 'x-token': 'change-me' } } });
+    run.deliver({ id: 'x' }, { req: { headers: { 'x-token': TOKEN } } });
     await until(() => run.responses.length === 2, 'the 400');
     expect(run.responses[1].status).toBe(400);
     expect(run.calls).toHaveLength(1);

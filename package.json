@@ -1,6 +1,6 @@
 {
   "name": "@turbo-notify/node-red-whatsapp",
-  "version": "1.5.13",
+  "version": "1.5.14",
   "description": "WhatsApp nodes for Node-RED: send text, pictures, documents and locations from your own number, and start a flow when a message arrives. Eighteen ready-to-import example flows.",
   "license": "MIT",
   "homepage": "https://docs.turbonotify.com/en/platforms/node-red/",

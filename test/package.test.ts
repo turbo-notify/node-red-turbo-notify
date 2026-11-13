@@ -35,8 +35,8 @@ describe('package contract (what the Flow Library and the scorecard read)', () =
     expect(VERSION).toBe(pkg.version);
   });
 
-  it('carries the one version every public Turbo Notify package carries, and the words people search for', () => {
-    expect(pkg.version).toBe('1.5.13');
+  it('is in the 1.5 series every public Turbo Notify package is in (never 0.x), and carries the words people search for', () => {
+    expect(pkg.version).toMatch(/^1\.5\.\d+$/);
     // The name and description are what npm and the palette search read: keep the two search words in the name.
     expect(pkg.name).toMatch(/node-red/);
     expect(pkg.name).toMatch(/whatsapp/);

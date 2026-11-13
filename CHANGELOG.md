@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.5.14
+
+- Security: the two flows that open an HTTP endpoint (`http-endpoint-to-whatsapp` and `order-confirmation`) no longer ship a default token. The tab variable `ALERT_TOKEN` is empty, and the endpoint answers `503` to every call until you set a token of at least 16 characters; a wrong token answers `401`. The token is compared character by character in constant time. In 1.5.13 the variable started as `change-me` and an empty token let every call through, so anyone who deployed one of these flows without changing the token left it open. If you deployed either flow from 1.5.13, set a strong `ALERT_TOKEN` now.
+- The setup comment of both flows says who can send with the token (any number, from your number) and asks for https.
+
 ## 1.5.13
 
 - The package is now `@turbo-notify/node-red-whatsapp`, so a search for "node-red whatsapp" finds it. It replaces `@turbo-notify/node-red-turbo-notify` (0.1.0 and 0.1.1). The node types did not change, so a flow that uses the old package keeps working: uninstall the old package, install this one and restart Node-RED.
