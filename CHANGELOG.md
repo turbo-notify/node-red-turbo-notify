@@ -1,5 +1,9 @@
 # Changelog
 
+## Redirect of the first package name
+
+- `@turbo-notify/node-red-turbo-notify` 1.5.14 is a signpost with no nodes (folder `redirect/`). It depends on `@turbo-notify/node-red-whatsapp`, so an install or an update of the old name brings the new package and flows keep working. It is published by the same workflow on a tag named `redirect-1.5.14`.
+
 ## 1.5.14
 
 - Security: the two flows that open an HTTP endpoint (`http-endpoint-to-whatsapp` and `order-confirmation`) no longer ship a default token. The tab variable `ALERT_TOKEN` is empty, and the endpoint answers `503` to every call until you set a token of at least 16 characters; a wrong token answers `401`. The token is compared character by character in constant time. In 1.5.13 the variable started as `change-me` and an empty token let every call through, so anyone who deployed one of these flows without changing the token left it open. If you deployed either flow from 1.5.13, set a strong `ALERT_TOKEN` now.

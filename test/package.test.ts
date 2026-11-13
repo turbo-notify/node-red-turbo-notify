@@ -154,12 +154,15 @@ describe('package contract (what the Flow Library and the scorecard read)', () =
     expect(text).toContain('id-token: write');
     expect(text).toContain('--provenance');
     expect(text).toMatch(/tags:\s*\n\s*- '\*\.\*\.\*'/);
+    // The main job skips the redirect tags and the redirect job runs only for them.
+    expect(text).toContain("if: ${{ !startsWith(github.ref_name, 'redirect-') }}");
+    expect(text).toContain("if: ${{ startsWith(github.ref_name, 'redirect-') }}");
     // The Trusted Publisher is the route. The one allowed use of a token is the very first release of a new
     // package (a Trusted Publisher can only be set on a package that exists): one optional, empty-by-default
     // secret read in the Publish step, never NODE_AUTH_TOKEN and never anywhere else.
     expect(text).not.toMatch(/NODE_AUTH_TOKEN/);
     const code = text.split('\n').filter((line) => !line.trim().startsWith('#')).join('\n');
-    expect(code.match(/secrets\.NPM_TOKEN/g)).toHaveLength(1);
+    expect(code.match(/secrets\.NPM_TOKEN/g)).toHaveLength(1); // the redirect job uses OIDC only, never a token
     expect(code).toContain('if [ -n "$NPM_TOKEN" ]');
   });
 
@@ -226,5 +229,29 @@ describe('source scan (acceptance 5)', () => {
       const where = relative(ROOT, file);
       expect({ where, hit: internal.test(readFileSync(file, 'utf8')) }).toEqual({ where, hit: false });
     }
+  });
+});
+
+describe('redirect of the first package name', () => {
+  const redirect = JSON.parse(read('redirect/package.json'));
+
+  it('is a signpost: no nodes, one dependency on the new package, no search words of its own', () => {
+    expect(redirect.name).toBe('@turbo-notify/node-red-turbo-notify');
+    expect(redirect.version).toMatch(/^1\.5\.\d+$/);
+    expect(redirect['node-red']).toBeUndefined();
+    expect(Object.keys(redirect.dependencies)).toEqual(['@turbo-notify/node-red-whatsapp']);
+    expect(redirect.dependencies['@turbo-notify/node-red-whatsapp']).toMatch(/^\^1\.5\.\d+$/);
+    expect(redirect.keywords).not.toContain('whatsapp');
+    expect(redirect.keywords).not.toContain('node-red');
+    expect(redirect.description).not.toMatch(/whatsapp/i);
+    expect(redirect.files).toEqual(['README.md', 'LICENSE']);
+    expect(existsSync(join(ROOT, 'redirect/LICENSE'))).toBe(true);
+    expect(read('redirect/README.md')).toContain('@turbo-notify/node-red-whatsapp');
+  });
+
+  it('is published by the same Trusted Publisher workflow, on a redirect-<version> tag', () => {
+    const text = read('.github/workflows/publish.yml');
+    expect(text).toContain('working-directory: redirect');
+    expect(text).toContain('redirect-$(node -p "require(\'./redirect/package.json\').version")');
   });
 });

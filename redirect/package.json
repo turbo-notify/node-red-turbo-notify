@@ -1,0 +1,39 @@
+{
+  "name": "@turbo-notify/node-red-turbo-notify",
+  "version": "1.5.14",
+  "description": "Renamed. This package only installs the Turbo Notify Node-RED nodes under their new name, shown in the README.",
+  "license": "MIT",
+  "homepage": "https://docs.turbonotify.com/en/platforms/node-red/",
+  "keywords": [
+    "turbo-notify",
+    "turbonotify",
+    "renamed"
+  ],
+  "author": {
+    "name": "Turbo Notify",
+    "email": "support@turbonotify.com",
+    "url": "https://turbonotify.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/turbo-notify/node-red-turbo-notify.git",
+    "directory": "redirect"
+  },
+  "bugs": {
+    "url": "https://github.com/turbo-notify/node-red-turbo-notify/issues"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "files": [
+    "README.md",
+    "LICENSE"
+  ],
+  "dependencies": {
+    "@turbo-notify/node-red-whatsapp": "^1.5.14"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
+}
