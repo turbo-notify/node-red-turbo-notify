@@ -4,7 +4,7 @@
     "type": "tab",
     "label": "Reply to an incoming WhatsApp message",
     "disabled": false,
-    "info": "Answers every private WhatsApp message that arrives on your number."
+    "info": "Answers a private WhatsApp message that arrives on your number, at most once an hour for each person."
   },
   {
     "id": "b1b2c3d4e5f60002",

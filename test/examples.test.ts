@@ -313,6 +313,16 @@ describe('example flows run on the real nodes', () => {
       await until(() => run.calls.length === 3, 'the menu after the pause');
     });
 
+    it('never answers one person more than six times an hour, even for real choices (two auto-responders cannot loop)', async () => {
+      const run = await start('whatsapp-menu-by-keyword.json');
+      for (let minute = 0; minute < 9; minute += 1) {
+        run.deliver(incoming('3', {}, `2026-06-08T10:0${minute}:00`));
+      }
+      await until(() => run.calls.length === 6, 'six answers');
+      await settle();
+      expect(run.calls).toHaveLength(6);
+    });
+
     it('ignores an event that is not an incoming message', async () => {
       const run = await start('whatsapp-menu-by-keyword.json');
       run.deliver({ ...incoming('1'), type: 'message.sent' });
@@ -470,6 +480,12 @@ describe('example flows run on the real nodes', () => {
     run.deliver({ ...incoming('where are you?'), type: 'message.sent' });
     await settle();
     expect(run.calls).toHaveLength(1);
+    for (let minute = 1; minute < 6; minute += 1) {
+      run.deliver(incoming('where are you?', {}, `2026-06-08T10:0${minute}:00`));
+    }
+    await until(() => run.calls.length === 3, 'three locations');
+    await settle();
+    expect(run.calls).toHaveLength(3);
   });
 
   it('node-red-error-alert: an error on the tab becomes a WhatsApp message', async () => {

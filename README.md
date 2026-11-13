@@ -86,7 +86,7 @@ Import them from the menu: **Import**, then **Examples**, then **@turbo-notify/n
 | `confirm-whatsapp-delivery-or-alert` | Sends a message, checks its status 30 seconds later and warns you if it failed. |
 | `http-endpoint-to-whatsapp` | `POST /whatsapp/alert` sends a message: any system that can make an HTTP call can use your number. It refuses every call (503) until you set a token of at least 16 characters in the tab variable `ALERT_TOKEN`. |
 | `whatsapp-order-confirmation` | `POST /whatsapp/orders` confirms an order to the customer with a written summary. |
-| `reply-to-an-incoming-whatsapp-message` | Answers every private message that arrives, using the events node. |
+| `reply-to-an-incoming-whatsapp-message` | Answers a private message that arrives, at most once an hour for each person, using the events node. |
 | `whatsapp-menu-by-keyword` | Answers 1, 2 or 3 (or the words hours, address, person) with the right text, and the menu for anything else. |
 | `whatsapp-after-hours-auto-reply` | Tells people you are closed outside your opening hours, once every 12 hours per person. |
 | `incoming-whatsapp-messages-to-a-team-group` | Forwards every private message to a WhatsApp group of your team. |
