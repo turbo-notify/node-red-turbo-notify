@@ -467,6 +467,7 @@ describe('example flows run on the real nodes', () => {
     });
     run.deliver(incoming('what is the price?'));
     run.deliver(groupMessage());
+    run.deliver({ ...incoming('where are you?'), type: 'message.sent' });
     await settle();
     expect(run.calls).toHaveLength(1);
   });

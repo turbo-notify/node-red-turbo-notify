@@ -38,7 +38,7 @@
     "type": "function",
     "z": "2bb2c3d4e5f60001",
     "name": "asked where we are?",
-    "func": "const event = msg.payload;\nconst data = event.data || {};\nconst sender = data.from || {};\nif ((data.to && data.to.group_id) || !sender.number || data.content_type !== 'text') {\n    return null;\n}\nconst text = String(data.preview || '').toLowerCase();\nif (!/\\b(where|address|location)\\b/.test(text)) {\n    return null;\n}\nmsg.to = '+' + sender.number;\nmsg.number = event.number_alias || 'main';\nmsg.payload = '';\nmsg.location = {\n    latitude: 51.5007,\n    longitude: -0.1246,\n    name: 'Our store',\n    address: '10 Example Street, London',\n};\nreturn msg;",
+    "func": "const event = msg.payload;\nif (event.type !== 'message.received') {\n    return null;\n}\nconst data = event.data || {};\nconst sender = data.from || {};\nif ((data.to && data.to.group_id) || !sender.number || data.content_type !== 'text') {\n    return null;\n}\nconst text = String(data.preview || '').toLowerCase();\nif (!/\\b(where|address|location)\\b/.test(text)) {\n    return null;\n}\nmsg.to = '+' + sender.number;\nmsg.number = event.number_alias || 'main';\nmsg.payload = '';\nmsg.location = {\n    latitude: 51.5007,\n    longitude: -0.1246,\n    name: 'Our store',\n    address: '10 Example Street, London',\n};\nreturn msg;",
     "outputs": 1,
     "timeout": 0,
     "noerr": 0,

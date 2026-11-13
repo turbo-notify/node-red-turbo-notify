@@ -132,7 +132,7 @@ npm run build
 
 Tests use `node-red-node-test-helper` with Jest and a mocked `fetch`: no test talks to the network.
 
-To try the nodes in a real editor without an account, run `npm run editor`. It starts Node-RED with this package installed and a stand-in for the API, and prints the keys to paste (`tn_live_good_connected` works, `tn_live_good_nonumber` works but has no number linked, anything else is refused). To point the nodes at another address on purpose (a test double or a staging copy), set `turboNotifyBaseUrl` in the `settings.js` of that Node-RED: only the administrator can, and it must be https or an address on the same computer.
+To try the nodes in a real editor without an account, run `npm run editor`. It starts Node-RED with this package installed and a stand-in for the API, and prints the keys to paste (`tn_live_good_connected` works, `tn_live_good_nonumber` works but has no number linked, `tn_live_noscope` passes the account check but is refused for numbers and sends, anything else is refused). To point the nodes at another address on purpose (a test double or a staging copy), set `turboNotifyBaseUrl` in the `settings.js` of that Node-RED: only the administrator can, and it must be https or an address on the same computer.
 
 ## License
 
