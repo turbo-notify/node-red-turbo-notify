@@ -52,7 +52,7 @@ A wrong phone number, two recipients, a media address that is not http or https,
 
 ### whatsapp status
 
-Takes `msg.messageId` (set by **whatsapp send**), and returns the status of the message on `msg.payload`. Ids belong to one number, so use the same number the message was sent from.
+Takes `msg.messageId` (set by **whatsapp send**), and returns the status of the message on `msg.payload`: `msg.payload.status.state` is `pending`, `sent`, `delivered`, `read` or `failed`, and `msg.payload.status.error` says why when it failed. Ids belong to one number, so use the same number the message was sent from.
 
 ### whatsapp events
 

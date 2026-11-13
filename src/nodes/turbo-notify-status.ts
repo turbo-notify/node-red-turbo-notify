@@ -1,6 +1,6 @@
 import { apiRequest } from '../lib/client';
 import { ValidationError } from '../lib/errors';
-import { failNode, markMissingKey } from '../lib/node-support';
+import { failNode, markMissingKey, stateText } from '../lib/node-support';
 import type { ConfigNode, NodeConfig, Red, RedNode } from '../lib/red';
 import { prepareStatus } from '../lib/send-request';
 
@@ -23,7 +23,7 @@ export = function register(RED: Red): void {
         const result = await apiRequest(api, { method: 'GET', path: prepared.path });
         msg.payload = result;
         msg.messageId = prepared.id;
-        node.status({ fill: 'green', shape: 'dot', text: String(result.status ?? 'ok') });
+        node.status({ fill: 'green', shape: 'dot', text: stateText(result.status, 'ok') });
         send(msg);
         done();
       } catch (error) {

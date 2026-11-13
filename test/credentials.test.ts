@@ -21,7 +21,7 @@ describe('the API key lives only in the credentials store (acceptance 6)', () =>
   });
 
   it('a key pasted into the flow file by mistake is not what the node uses', async () => {
-    const fake = mockFetch({ body: { message_id: 'msg_0198d3c5a1b24d3e9f01a2b3c4d5e6f7', status: 'pending' } });
+    const fake = mockFetch({ body: { message_id: 'msg_0198d3c5a1b24d3e9f01a2b3c4d5e6f7', status: { state: 'pending', at: '2026-06-08T10:00:00Z', error: null } } });
     try {
       const flow = flowWithSend({ to: '+12025550123' });
       flow[0].apiKey = 'flow_file_key';

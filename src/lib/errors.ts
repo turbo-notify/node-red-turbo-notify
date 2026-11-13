@@ -48,7 +48,7 @@ const DASHBOARD = 'https://dashboard.turbonotify.com';
 
 const KNOWN: Record<string, string> = {
   not_authenticated: `The API key was not accepted. A revoked or expired key never works again: create a new one under API keys in the dashboard (${DASHBOARD}/api-keys).`,
-  number_not_connected: `The number is not connected to WhatsApp. Reconnect it under Numbers in the dashboard (${DASHBOARD}/numbers).`,
+  number_not_connected: `The WhatsApp number is not connected. Link it under Numbers in the dashboard with Connect main number, or reconnect it if it was linked before (${DASHBOARD}/numbers).`,
   number_not_found: 'The number was not found. Use main, the alias of an extra number or its num_ id.',
   not_found: 'Nothing was found for that id on this number. Ids belong to one number.',
   feature_not_available: `The current plan does not include this feature. Compare plans under Billing in the dashboard (${DASHBOARD}/billing).`,
@@ -91,7 +91,7 @@ export function apiErrorFromResponse(
 
   let description = KNOWN[code] ?? '';
   if (code === 'insufficient_scope') {
-    description = `The API key cannot do this. Add the '${requiredScope ?? 'required'}' scope to the key, or create a key from a template that includes it.`;
+    description = `The API key cannot do this. It lacks the '${requiredScope ?? 'required'}' scope, and the scopes of a key cannot be changed afterwards: create a new key under API keys in the dashboard (${DASHBOARD}/api-keys) with that scope, for example from the AI agent (MCP) template.`;
   } else if (code === 'validation_error') {
     const errors = asObject(data.details).errors;
     const fields = Array.isArray(errors)

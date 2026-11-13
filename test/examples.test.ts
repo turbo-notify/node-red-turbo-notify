@@ -69,7 +69,7 @@ beforeAll(() => helper.startServer());
 afterAll(() => helper.stopServer());
 
 const accepted = (call: Call): FakeReply =>
-  call.method === 'POST' ? { body: { message_id: ID, status: 'pending' } } : { body: { message_id: ID, status: 'delivered' } };
+  call.method === 'POST' ? { body: { message_id: ID, status: { state: 'pending', at: '2026-06-08T10:00:00Z', error: null } } } : { body: { message_id: ID, status: { state: 'delivered', at: '2026-06-08T10:00:00Z', error: null } } };
 
 async function start(file: string, edges: Edges = {}): Promise<Running> {
   const original = load(file);
@@ -443,7 +443,7 @@ describe('example flows run on the real nodes', () => {
       const run = await start('confirm-whatsapp-delivery-or-alert.json', {
         skipDelay: true,
         reply: (call) =>
-          call.method === 'POST' ? { body: { message_id: ID, status: 'pending' } } : { body: { message_id: ID, status: 'failed' } },
+          call.method === 'POST' ? { body: { message_id: ID, status: { state: 'pending', at: '2026-06-08T10:00:00Z', error: null } } } : { body: { message_id: ID, status: { state: 'failed', at: '2026-06-08T10:00:00Z', error: null } } },
       });
       run.fireInject();
       await until(() => run.calls.length === 3, 'send, status, warning');

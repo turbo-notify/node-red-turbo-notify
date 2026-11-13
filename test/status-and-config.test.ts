@@ -21,7 +21,7 @@ const flow = (props: Record<string, unknown> = {}) => [
 
 describe('Status node', () => {
   it('GET /v1/numbers/main/messages/{id}/status with the bearer key', async () => {
-    fake = mockFetch({ body: { message_id: ID, status: 'delivered' } });
+    fake = mockFetch({ body: { message_id: ID, status: { state: 'delivered', at: '2026-06-08T10:00:00Z', error: null } } });
     await helper.load(ALL_NODES, flow(), { cfg: { apiKey: KEY } });
     const { out } = await runThrough('s1', { messageId: ID });
     expect(fake.calls).toHaveLength(1);
@@ -29,11 +29,19 @@ describe('Status node', () => {
     expect(fake.calls[0].url).toBe(`https://api.turbonotify.com/v1/numbers/main/messages/${ID}/status`);
     expect(fake.calls[0].headers.Authorization).toBe(`Bearer ${KEY}`);
     expect(fake.calls[0].body).toBeUndefined();
-    expect(out?.payload).toEqual({ message_id: ID, status: 'delivered' });
+    expect(out?.payload).toEqual({ message_id: ID, status: { state: 'delivered', at: '2026-06-08T10:00:00Z', error: null } });
+  });
+
+  it('shows the state of the message on the node, not the whole status object', async () => {
+    fake = mockFetch({ body: { message_id: ID, status: { state: 'delivered', at: '2026-06-08T10:00:00Z', error: null } } });
+    await helper.load(ALL_NODES, flow(), { cfg: { apiKey: KEY } });
+    await runThrough('s1', { messageId: ID });
+    const shown = helper.getNode('s1').status.lastCall?.args[0] as { text?: string } | undefined;
+    expect(shown?.text).toBe('delivered');
   });
 
   it.each(['.', '..'])('a number of "%s" is refused: it would fold into another route', async (number) => {
-    fake = mockFetch({ body: { status: 'sent' } });
+    fake = mockFetch({ body: { status: { state: 'sent', at: '2026-06-08T10:00:00Z', error: null } } });
     await helper.load(ALL_NODES, flow(), { cfg: { apiKey: KEY } });
     const { error } = await runThrough('s1', { messageId: ID, number });
     expect(error?.message).toContain('msg.number');
@@ -41,7 +49,7 @@ describe('Status node', () => {
   });
 
   it('reads the id from a text payload or from payload.message_id, and the number from msg.number', async () => {
-    fake = mockFetch({ body: { status: 'sent' } });
+    fake = mockFetch({ body: { status: { state: 'sent', at: '2026-06-08T10:00:00Z', error: null } } });
     await helper.load(ALL_NODES, flow(), { cfg: { apiKey: KEY } });
     await runThrough('s1', { payload: ID, number: 'sales' });
     await runThrough('s1', { payload: { message_id: ID } });
@@ -229,7 +237,7 @@ describe('Nodes without a usable config node', () => {
   });
 
   it('an address saved in a flow made with an older version is ignored, not obeyed', async () => {
-    fake = mockFetch({ body: { message_id: ID, status: 'pending' } });
+    fake = mockFetch({ body: { message_id: ID, status: { state: 'pending', at: '2026-06-08T10:00:00Z', error: null } } });
     await helper.load(
       ALL_NODES,
       [

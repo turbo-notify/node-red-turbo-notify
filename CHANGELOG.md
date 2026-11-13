@@ -9,6 +9,8 @@ A first-run review in a real Node-RED editor: can a person who just installed th
 - After a deploy without a key, the nodes show a yellow **paste your API key** at once (the events node waits instead of failing every poll).
 - **The Base URL setting is gone.** The nodes always use `https://api.turbonotify.com`. A flow you import or share used to be able to name another address and receive the key you pasted; now it cannot. A flow made with an older version that still carries an address ignores it and logs one line. To use another address on purpose (a test double or a staging copy), the administrator sets `turboNotifyBaseUrl` in `settings.js`.
 - All eighteen example flows start with a note called **START HERE** that repeats the three setup steps with links, their titles and descriptions say WhatsApp, and their account node carries no address.
+- Fix: the API answers `status` as an object (`state`, `at`, `error`). The **confirm delivery** example compared it with the text "failed", so it never warned about a failed message, and the whatsapp send and status nodes showed `[object Object]` under the node. They now read `status.state`; the help text and README say `msg.payload.status.state`. If you use `payload.status` in your own switch, change it to `payload.status.state`.
+- A number alias of `.` or `..` is refused instead of reaching another API route, and an error about a missing scope now says to create a new key (the scopes of a key cannot be changed afterwards).
 - `npm run editor` starts a real Node-RED with the package and a stand-in for the API, to try every state above without an account.
 
 ## Redirect of the first package name

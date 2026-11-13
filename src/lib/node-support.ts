@@ -19,6 +19,16 @@ export function failNode(node: RedNode, error: unknown): Error {
  * A yellow ring right after a deploy tells the person the key is still missing, before the first message
  * fails. Returns true when the key is missing.
  */
+/** The API answers `status` as `{ state, at, error }`; the badge shows the state, whatever shape comes back. */
+export function stateText(status: unknown, fallback: string): string {
+  if (typeof status === 'string' && status !== '') return status;
+  if (typeof status === 'object' && status !== null) {
+    const state = (status as { state?: unknown }).state;
+    if (typeof state === 'string' && state !== '') return state;
+  }
+  return fallback;
+}
+
 export function markMissingKey(node: RedNode, server: ConfigNode | null): boolean {
   if (server === null || (server.credentials?.apiKey ?? '').trim() !== '') return false;
   node.status({ fill: 'yellow', shape: 'ring', text: 'paste your API key' });

@@ -71,9 +71,10 @@
   <dl class="message-properties">
     <dt>payload <span class="property-type">object</span></dt>
     <dd>
-      The status of the message. <code>status</code> is <code>pending</code>, <code>sent</code>,
-      <code>delivered</code>, <code>read</code> or <code>failed</code>. A failed message carries an
-      <code>error</code> object with the reason.
+      The status of the message. <code>status.state</code> is <code>pending</code>, <code>sent</code>,
+      <code>delivered</code>, <code>read</code> or <code>failed</code>, and <code>status.at</code> is when it got
+      there. For a failed message <code>status.error</code> holds the reason (<code>code</code>,
+      <code>message</code> and, when there is one, <code>hint</code>).
     </dd>
   </dl>
 

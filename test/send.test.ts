@@ -10,7 +10,7 @@ import {
 } from './support';
 
 const ID = 'msg_0198d3c5a1b24d3e9f01a2b3c4d5e6f7';
-const ACCEPTED = { message_id: ID, status: 'pending' };
+const ACCEPTED = { message_id: ID, status: { state: 'pending', at: '2026-06-08T10:00:00Z', error: null } };
 
 beforeAll(() => helper.startServer());
 afterAll(() => helper.stopServer());
