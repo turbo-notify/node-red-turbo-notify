@@ -191,6 +191,30 @@ describe('Send: errors from the API', () => {
     expect(cause.description).toContain("'messages:send'");
   });
 
+  it('a 422 validation error names the field and the reason, as the API sends them', async () => {
+    const { error } = await send(
+      { payload: 'x', to: '+12025550123' },
+      {},
+      {
+        status: 422,
+        body: {
+          error: 'validation_error',
+          details: { errors: [{ field: 'body.to.number', message: 'is not a valid phone number', type: 'value_error' }] },
+        },
+      },
+    );
+    expect((error as ApiError).cause.description).toBe('Turbo Notify rejected a value. to.number: is not a valid phone number');
+  });
+
+  it('a send before any number is linked tells the person where to link it', async () => {
+    const { error } = await send(
+      { payload: 'x', to: '+12025550123' },
+      {},
+      { status: 422, body: { error: 'no_main_number_configured' } },
+    );
+    expect((error as ApiError).cause.description).toMatch(/Connect main number.*\/numbers/);
+  });
+
   it('a 429 carries the Retry-After hint', async () => {
     const { error } = await send(
       { payload: 'x', to: '+12025550123' },

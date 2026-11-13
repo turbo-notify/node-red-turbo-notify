@@ -49,6 +49,9 @@ const DASHBOARD = 'https://dashboard.turbonotify.com';
 const KNOWN: Record<string, string> = {
   not_authenticated: `The API key was not accepted. A revoked or expired key never works again: create a new one under API keys in the dashboard (${DASHBOARD}/api-keys).`,
   number_not_connected: `The WhatsApp number is not connected. Link it under Numbers in the dashboard with Connect main number, or reconnect it if it was linked before (${DASHBOARD}/numbers).`,
+  no_main_number: `No main WhatsApp number is linked yet. Link it under Numbers in the dashboard with Connect main number (${DASHBOARD}/numbers).`,
+  no_main_number_configured: `No main WhatsApp number is linked yet. Link it under Numbers in the dashboard with Connect main number (${DASHBOARD}/numbers).`,
+  main_number_not_paired: `The main WhatsApp number lost its link. Connect it again under Numbers in the dashboard (${DASHBOARD}/numbers).`,
   number_not_found: 'The number was not found. Use main, the alias of an extra number or its num_ id.',
   not_found: 'Nothing was found for that id on this number. Ids belong to one number.',
   feature_not_available: `The current plan does not include this feature. Compare plans under Billing in the dashboard (${DASHBOARD}/billing).`,
@@ -69,7 +72,7 @@ const KNOWN: Record<string, string> = {
   recipients_per_day_limit_exceeded:
     'This recipient already received the daily maximum from this number. Try again tomorrow.',
   unreachable: 'Could not reach Turbo Notify. Check the network of this Node-RED: it must be able to reach the internet.',
-  timeout: 'Turbo Notify did not answer in time. Reads are safe to repeat. For a send, check the status of the message before sending it again, because it may have gone out.',
+  timeout: 'Turbo Notify did not answer in time. Reads are safe to repeat. A send may have gone out: look in your WhatsApp or under Messages in the dashboard before sending it again, or set msg.idempotencyKey so that a repeat cannot send twice.',
 };
 
 const asObject = (value: unknown): Record<string, unknown> =>
@@ -98,10 +101,10 @@ export function apiErrorFromResponse(
       ? errors
           .map((e) => {
             const entry = asObject(e);
-            const loc = Array.isArray(entry.loc)
-              ? entry.loc.filter((p) => p !== 'body').join('.')
-              : '';
-            return `${loc}: ${String(entry.msg ?? '')}`.trim();
+            // The API answers { field: 'body.to.number', message, type }.
+            const field = typeof entry.field === 'string' ? entry.field.replace(/^body\./, '') : '';
+            const reason = typeof entry.message === 'string' ? entry.message : '';
+            return field !== '' && reason !== '' ? `${field}: ${reason}` : field || reason;
           })
           .join('; ')
       : '';
@@ -109,7 +112,7 @@ export function apiErrorFromResponse(
   }
   if (description === '') {
     if (typeof data.message === 'string') description = data.message;
-    else if (status >= 500) description = 'This happened on the Turbo Notify side. Reads are safe to repeat. For a send, check the status of the message before sending it again.';
+    else if (status >= 500) description = 'This happened on the Turbo Notify side. Reads are safe to repeat. A send may have gone out: look in your WhatsApp or under Messages in the dashboard before sending it again, or set msg.idempotencyKey so that a repeat cannot send twice.';
     else description = `The API answered ${status}.`;
   }
   if (retryAfter !== undefined) description = `${description} Retry after ${retryAfter} seconds.`;

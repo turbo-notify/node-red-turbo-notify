@@ -178,7 +178,7 @@ describe('Config node Test button', () => {
       [
         'no number at all',
         { id: 'new-node', apiKey: 'tn_live_ok' },
-        { number: { status: 404, body: { error: 'number_not_found' } } },
+        { number: { status: 404, body: { error: 'no_main_number' } } },
         { ok: true, state: 'no_number' },
         /no WhatsApp number is linked yet.*Numbers/,
       ],

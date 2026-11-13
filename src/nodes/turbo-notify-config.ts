@@ -97,7 +97,7 @@ export = function register(RED: Red): void {
         description: `The key works, but your WhatsApp number is not connected yet (status: ${String(number.status ?? 'unknown')}). Link it in the dashboard, under Numbers, then press Test again.`,
       };
     } catch (error) {
-      if (error instanceof ApiError && (error.code === 'number_not_found' || error.code === 'not_found')) {
+      if (error instanceof ApiError && (error.code === 'no_main_number' || error.code === 'number_not_found' || error.code === 'not_found')) {
         return {
           ok: true,
           state: 'no_number',

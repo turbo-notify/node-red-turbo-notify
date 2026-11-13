@@ -298,6 +298,46 @@ describe('example flows run on the real nodes', () => {
     });
   });
 
+  describe('menu-by-keyword pauses', () => {
+    it('offers the menu to the same person once an hour, but always answers a real choice', async () => {
+      const run = await start('whatsapp-menu-by-keyword.json');
+      run.deliver(incoming('hello'));
+      await until(() => run.calls.length === 1, 'the menu');
+      run.deliver(incoming('anyone there?', {}, '2026-06-08T10:05:00'));
+      run.deliver(incoming('2', {}, '2026-06-08T10:06:00'));
+      await until(() => run.calls.length === 2, 'the answer to the choice');
+      await settle();
+      expect(run.calls).toHaveLength(2);
+      expect(textOf(run.calls[1])).toContain('You find us at');
+      run.deliver(incoming('hello again', {}, '2026-06-08T11:30:00'));
+      await until(() => run.calls.length === 3, 'the menu after the pause');
+    });
+
+    it('ignores an event that is not an incoming message', async () => {
+      const run = await start('whatsapp-menu-by-keyword.json');
+      run.deliver({ ...incoming('1'), type: 'message.sent' });
+      await settle();
+      expect(run.calls).toHaveLength(0);
+    });
+  });
+
+  describe('reply-to-an-incoming-message', () => {
+    it('answers a private message once an hour per person, never a group or a sent message', async () => {
+      const run = await start('reply-to-an-incoming-whatsapp-message.json');
+      run.deliver(incoming('hi'));
+      await until(() => run.calls.length === 1, 'the answer');
+      expect(textOf(run.calls[0])).toBe('Thanks, Ana Silva. We received your message and will answer soon.');
+      expect(body(run.calls[0]).to).toEqual({ number: '+12025550142' });
+      run.deliver(incoming('and another line', {}, '2026-06-08T10:10:00'));
+      run.deliver(groupMessage());
+      run.deliver({ ...incoming('sent by us'), type: 'message.sent' });
+      await settle();
+      expect(run.calls).toHaveLength(1);
+      run.deliver(incoming('next day', {}, '2026-06-09T10:00:00'));
+      await until(() => run.calls.length === 2, 'the answer after the pause');
+    });
+  });
+
   describe('after-hours-auto-reply', () => {
     it('answers on a Saturday, not on a Monday at 10:00, and only once per person in 12 hours', async () => {
       const run = await start('whatsapp-after-hours-auto-reply.json');

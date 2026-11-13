@@ -7,6 +7,9 @@
 import { createServer } from 'node:http';
 import { randomBytes } from 'node:crypto';
 
+const NOW = () => new Date().toISOString().replace(/\.\d+Z$/, 'Z');
+const state = (value) => ({ state: value, at: NOW(), error: null });
+
 const json = (res, status, body) => {
   res.writeHead(status, { 'content-type': 'application/json' });
   res.end(JSON.stringify(body));
@@ -21,19 +24,20 @@ export function startMockApi(port = 18080) {
     req.on('data', (chunk) => (body += chunk));
     req.on('end', () => {
       if (!known.includes(key)) return json(res, 401, { error: 'not_authenticated' });
-      if (req.method === 'GET' && path === '/usage') return json(res, 200, { plan: 'solo', messages: { used: 0, limit: 1000 } });
+      if (req.method === 'GET' && path === '/usage') return json(res, 200, { messages: { used: 0, quota: 1000, remaining: 1000, resets_at: NOW(), tier: 'solo' }, contacts: { used: 0, quota: 100, remaining: 100 }, numbers: [] });
       if (key === 'tn_live_noscope') return json(res, 403, { error: 'insufficient_scope', required_scope: 'messages:send' });
       if (req.method === 'GET' && /^\/numbers\/[^/]+$/.test(path)) {
+        // A fresh account has no main number: the real API answers 404 no_main_number.
         return key === 'tn_live_good_nonumber'
-          ? json(res, 200, { alias: 'main', status: 'pending' })
-          : json(res, 200, { alias: 'main', status: 'connected', number: '+12025550123' });
+          ? json(res, 404, { error: 'no_main_number' })
+          : json(res, 200, { id: `num_${'0'.repeat(32)}`, alias: 'main', type: 'main', status: 'connected', number: '12025550123', at: NOW() });
       }
       if (req.method === 'POST' && /^\/numbers\/[^/]+\/messages$/.test(path)) {
         if (key === 'tn_live_good_nonumber') return json(res, 409, { error: 'number_not_connected' });
-        return json(res, 202, { message_id: `msg_${randomBytes(16).toString('hex')}`, status: 'pending' });
+        return json(res, 202, { message_id: `msg_${randomBytes(16).toString('hex')}`, status: state('pending') });
       }
       if (req.method === 'GET' && /^\/numbers\/[^/]+\/messages\/[^/]+\/status$/.test(path)) {
-        return json(res, 200, { status: 'delivered' });
+        return json(res, 200, { message_id: path.split('/')[4], status: state('delivered') });
       }
       return json(res, 404, { error: 'not_found' });
     });

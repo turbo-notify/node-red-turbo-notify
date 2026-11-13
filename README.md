@@ -93,7 +93,7 @@ Import them from the menu: **Import**, then **Examples**, then **@turbo-notify/n
 | `share-your-store-location-on-whatsapp` | Sends a map location when someone asks where you are. |
 | `log-incoming-whatsapp-messages-to-a-file` | Keeps a CSV record of every message you receive. |
 
-Every example uses the placeholder number `+12025550123`: replace it before you deploy. The flows that read messages use the events node, which checks every 30 seconds.
+The examples that send to a fixed person use the placeholder number `+12025550123`: replace it before you deploy. The flows that answer people reply to whoever wrote, so they have no number; the team group flow has a placeholder group id to replace. The flows that read messages use the events node, which checks every 30 seconds, and its first check after a deploy only remembers the newest message: to test, deploy, write to your number from another phone and wait up to 30 seconds.
 
 ## Limits worth knowing
 
