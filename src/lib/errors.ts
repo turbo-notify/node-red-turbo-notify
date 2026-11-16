@@ -51,7 +51,7 @@ const KNOWN: Record<string, string> = {
   number_not_connected: `The WhatsApp number is not connected. Link it under Numbers in the dashboard with Connect main number, or reconnect it if it was linked before (${DASHBOARD}/numbers).`,
   no_main_number: `No main WhatsApp number is linked yet. Link it under Numbers in the dashboard with Connect main number (${DASHBOARD}/numbers).`,
   no_main_number_configured: `No main WhatsApp number is linked yet. Link it under Numbers in the dashboard with Connect main number (${DASHBOARD}/numbers).`,
-  main_number_not_paired: `The main WhatsApp number lost its link. Connect it again under Numbers in the dashboard (${DASHBOARD}/numbers).`,
+  main_number_not_paired: `The main WhatsApp number has not been paired yet. Pair it under Numbers in the dashboard (${DASHBOARD}/numbers).`,
   number_not_found: 'The number was not found. Use main, the alias of an extra number or its num_ id.',
   not_found: 'Nothing was found for that id on this number. Ids belong to one number.',
   feature_not_available: `The current plan does not include this feature. Compare plans under Billing in the dashboard (${DASHBOARD}/billing).`,
